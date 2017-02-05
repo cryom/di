@@ -1,0 +1,25 @@
+{
+  "name": "vivace/di",
+  "type": "library",
+  "require-dev": {
+    "codeception/codeception": "^2.2"
+  },
+  "authors": [
+    {
+      "name": "Albert Sultanov",
+      "email": "bert.sultanov.contact@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "autoload":{
+    "psr-4":{
+        "vivace\\di\\":"src/"
+    },
+    "files":[
+      "src/constants.php"
+    ]
+  },
+  "require": {
+    "psr/cache": "^1.0"
+  }
+}

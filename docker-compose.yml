@@ -1,0 +1,18 @@
+version: "2"
+networks:
+  default:
+services:
+
+  composer:
+    build: ./docker/composer
+    volumes:
+      - ./:/app
+      - ~/.ssh:/root/.ssh
+
+  codecept:
+    build: ./docker/codecept
+    volumes:
+      - ./:/app
+    environment:
+      XDEBUG_CONFIG: remote_host=192.168.100.6
+      PHP_IDE_CONFIG: serverName=xdebug
