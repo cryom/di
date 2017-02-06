@@ -2,6 +2,15 @@ version: "2"
 networks:
   default:
 services:
+  coverage:
+    build:
+      ./docker/coverage
+    volumes:
+      - ./:/app
+      - ~/.ssh:/root/.ssh
+    environment:
+      CODECLIMATE_REPO_TOKEN: f759558562762398c32879d47ef81bf3ac597cb09e36b1b57685cf2b68264479
+    command: [--coverage-report, ./tests/_output/coverage.xml]
 
   composer:
     build: ./docker/composer

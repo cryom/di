@@ -1,10 +1,23 @@
 language: php
 php:
-  - '7.1'
-  - nightly
+  - php: 7.1
+      env: WITH_LOWEST=true
+  - php: 7.1
+      env: WITH_HIGHEST=true WITH_COVERAGE=true
+cache:
+  directories:
+    - $HOME/.composer/cache
+#    - $HOME/.php-cs-fixer
+
+before_install:
+  - source .travis/travis.sh
+  - xdebug-disable
+  - composer self-update
+  - composer validate
 
 install:
-    - composer self-update
-    - composer install
+    - if [[ "$WITH_LOWEST" == "true" ]]; then composer update --prefer-lowest --prefer-dist; else composer install --prefer-dist; fi
 script:
-    - php vendor/bin/codecept run unit
+    - run-tests
+after_success:
+  - if [[ "$WITH_COVERAGE" == "true" ]]; then php composer/bin/test-reporter --coverage-report ./tests/_output/coverage.xml; fi
