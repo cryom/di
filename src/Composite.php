@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 02.02.17
- * Time: 23:17
- */
-
 namespace vivace\di;
 
 use vivace\di\error\RecursiveDependency;

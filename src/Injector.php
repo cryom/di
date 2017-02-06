@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 05.02.17
- * Time: 15:18
- */
-
 namespace vivace\di;
-
 
 use vivace\di\error\NotResolved;
 use vivace\di\error\Undefined;
@@ -41,12 +33,11 @@ class Injector
      * @return array
      * @throws NotResolved
      */
-    public function resolve($target):array
+    public function resolve($target): array
     {
         $dependencies = $this->meta->dependencies($target);
         $parameters = [];
         foreach ($dependencies as $pos => $dependency) {
-
             if (isset($dependency['type']) && class_exists($dependency['type'])) {
                 try {
                     $parameters[$pos] = $this->scope->import($dependency['type']);

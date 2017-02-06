@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 02.02.17
- * Time: 22:23
- */
-
 namespace vivace\di;
-
 
 use vivace\di\error\IdentifierConflict;
 use vivace\di\error\RecursiveDependency;
@@ -41,21 +33,6 @@ abstract class Scope implements type\Scope
             $this->stack = [];
             throw $e;
         }
-    }
-
-    /**
-     * @param string $id
-     * @param callable $factory
-     * @return $this|type\Scope
-     * @throws IdentifierConflict
-     */
-    final protected function export(string $id, callable $factory): type\Scope
-    {
-        if (isset($this->items[$id])) {
-            throw new IdentifierConflict("Name conflict. Identifier $id already declared");
-        }
-        $this->items[$id] = $factory;
-        return $this;
     }
 
     /** @inheritdoc */
@@ -99,5 +76,20 @@ abstract class Scope implements type\Scope
         return function (type\Scope $scope) use ($factory) {
             return call_user_func($factory, (new Composite($scope, $this)));
         };
+    }
+
+    /**
+     * @param string $id
+     * @param callable $factory
+     * @return $this|type\Scope
+     * @throws IdentifierConflict
+     */
+    final protected function export(string $id, callable $factory): type\Scope
+    {
+        if (isset($this->items[$id])) {
+            throw new IdentifierConflict("Name conflict. Identifier $id already declared");
+        }
+        $this->items[$id] = $factory;
+        return $this;
     }
 }

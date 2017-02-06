@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 04.02.17
- * Time: 19:18
- */
-
 namespace vivace\di;
 
 use vivace\di\error\Undefined;

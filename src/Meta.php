@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 31.01.17
- * Time: 23:13
- */
-
 namespace vivace\di;
 
 /**
@@ -17,6 +10,37 @@ class Meta implements type\Meta
 {
     /** @var array|null */
     private $dependencies;
+
+    /** @inheritdoc */
+    public function dependencies($target): array
+    {
+        $result = [];
+        if (($isString = is_string($target)) && isset($this->dependencies[$target])) {
+            return $this->dependencies[$target];
+        }
+
+        if ($r = $this->reflect($target)) {
+            foreach ($r->getParameters() as $parameter) {
+                $item = [
+                    'name' => $parameter->getName(),
+                ];
+                if ($class = $parameter->getClass()) {
+                    $item['type'] = $class->getName();
+                } elseif ($type = $parameter->getType()) {
+                    $item['type'] = (string)$parameter->getType();
+                }
+                if ($parameter->isDefaultValueAvailable()) {
+                    $item['default'] = $parameter->getDefaultValue();
+                }
+                $result[] = $item;
+            }
+        }
+
+        if ($isString) {
+            $this->dependencies[$target] = $result;
+        }
+        return $result;
+    }
 
     /** @inheritdoc */
     public function reflect($target): ?\ReflectionFunctionAbstract
@@ -36,36 +60,5 @@ class Meta implements type\Meta
             return new \ReflectionFunction($target);
         }
         return null;
-    }
-
-    /** @inheritdoc */
-    public function dependencies($target): array
-    {
-        $result = [];
-        if (($isString = is_string($target)) && isset($this->dependencies[$target])) {
-            return $this->dependencies[$target];
-        }
-
-        if ($r = $this->reflect($target)) {
-            foreach ($r->getParameters() as $parameter) {
-                $item = [
-                    'name' => $parameter->getName()
-                ];
-                if ($class = $parameter->getClass()) {
-                    $item['type'] = $class->getName();
-                } elseif ($type = $parameter->getType()) {
-                    $item['type'] = (string)$parameter->getType();
-                }
-                if ($parameter->isDefaultValueAvailable()) {
-                    $item['default'] = $parameter->getDefaultValue();
-                }
-                $result[] = $item;
-            }
-        }
-
-        if ($isString) {
-            $this->dependencies[$target] = $result;
-        }
-        return $result;
     }
 }

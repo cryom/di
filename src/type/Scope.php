@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 02.02.17
- * Time: 22:55
- */
-
 namespace vivace\di\type;
-
 
 use vivace\di\error\RecursiveDependency;
 use vivace\di\error\Undefined;

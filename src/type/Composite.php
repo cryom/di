@@ -1,14 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 04.02.17
- * Time: 15:50
- */
-
 namespace vivace\di\type;
 
-
+/**
+ * Interface Composite
+ * @package vivace\di\type
+ */
 interface Composite extends Scope
 {
     /**

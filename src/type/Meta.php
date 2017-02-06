@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 05.02.17
- * Time: 15:16
- */
-
 namespace vivace\di\type;
-
 
 /**
  * Interface Meta
