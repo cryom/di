@@ -8,26 +8,35 @@
 
 ```php
 class Models extends vivace\di\Scope{
-   $this->export('\PDO', function(){
-      return new \PDO('default_pdo_connection');
-   });
-   $this->export('models\User', function(vivace\di\type Scope $scope){
-      return new models\User($scope->import('\PDO'));
-   });
-   $this->export('models\Auth', function(vivace\di\type Scope $scope){
-      return new models\Auth($scope->import('\PDO'));
-   });
+   public function __construct(){
+      
+      $this->export('\PDO', function(){
+         return new \PDO('default_pdo_connection');
+      });
+      
+      $this->export('models\User', function(vivace\di\type Scope $scope){
+         return new models\User($scope->import('\PDO'));
+      });
+      
+      $this->export('models\Auth', function(vivace\di\type Scope $scope){
+         return new models\Auth($scope->import('\PDO'));
+      });
+   
+   }
 }
 
 class Main extends vivace\di\Scope {
   private $instances = [];
   public function __construct(){
+    
     $this->export('db_main', function(){
       return $this->newDbConnection('<dsn_for_db_main>');
     });
+    
     $this->export('db_auth', function(){
       return $this->newDbConnection('<dsn_for_db_auth>');
     })
+    
     $this->inherit(new Models())
         ->bind('Model\Auth', ['\PDO' => 'db_auth'])
         ->as('Model\Auth', 'Common\Auth')
@@ -46,6 +55,6 @@ class Main extends vivace\di\Scope {
 $scope = new Main();
 
 $auth = $scope->import('Common\Auth'); // equal to $scope->import('models\Auth')
-$pdo = $scope->import('\PDO');// equal to $scope->import('db_main')
+$pdo = $scope->import('\PDO');// equal to $scope->import('db_auth')
 $user = $scope->import('models\User');
 ```
