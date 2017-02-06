@@ -1,5 +1,6 @@
 {
   "name": "vivace/di",
+  "description": "Inversion of control(IoC) library",
   "type": "library",
   "require-dev": {
     "codeception/codeception": "^2.2",
