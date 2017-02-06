@@ -36,7 +36,7 @@ class Main extends vivace\di\Scope {
   }
   
   public function newDbConnection(string $dsn){
-    return $this->instances['PDO'] ?? $this->instances['PDO'] = new \PDO($dsn);
+    return $this->instances[$dsn] ?? $this->instances[$dsn] = new \PDO($dsn);
   }
 }
 
