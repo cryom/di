@@ -53,6 +53,12 @@ class Container extends Scope
                     $proxy->insteadOf($source, $alias);
                 }
             }
+
+            if (isset($options['bind'])) {
+                foreach ($options['bind'] as $id => $scope) {
+                    $proxy->bind($id, $scope);
+                }
+            }
         }
     }
 }

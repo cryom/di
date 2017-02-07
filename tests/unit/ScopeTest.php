@@ -92,7 +92,7 @@ class ScopeTest extends \Codeception\Test\Unit
     public function testFetch()
     {
         $scope = $this->newDefaultScope();
-        $this->tester->assertInstanceOf(Closure::class, $scope->fetch('foo'));
+        $this->tester->assertInstanceOf(Closure::class, $scope->getProducer('foo'));
     }
 
     public function testRecursiveCall()

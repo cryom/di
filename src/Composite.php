@@ -32,16 +32,16 @@ class Composite implements type\Composite
      */
     public function import(string $id)
     {
-        $factory = $this->fetch($id);
+        $factory = $this->getProducer($id);
         return $factory($this);
     }
 
     /** @inheritdoc */
-    public function fetch(string $id): \Closure
+    public function getProducer(string $id): \Closure
     {
         foreach ($this->scopes as $scope) {
             try {
-                return $scope->fetch($id);
+                return $scope->getProducer($id);
             } catch (Undefined $e) {
             }
         }
@@ -49,13 +49,13 @@ class Composite implements type\Composite
     }
 
     /**
-     * @param callable $factory
+     * @param callable $producer
      * @return callable
      */
-    public function bindTo(callable $factory): callable
+    public function bindTo(callable $producer): callable
     {
-        return function (Scope $scope) use ($factory) {
-            return call_user_func($factory, new self($scope, $this));
+        return function (Scope $scope) use ($producer) {
+            return call_user_func($producer, new self($scope, $this));
         };
     }
 

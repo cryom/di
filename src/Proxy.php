@@ -23,47 +23,62 @@ class Proxy extends Scope implements type\Proxy
     }
 
     /**
-     * @param $id
+     * @param $source
      * @param $name
      * @return type\Proxy
      */
-    public function as(string $id, string $name): type\Proxy
+    public function as(string $source, string $name): type\Proxy
     {
-        $this->export($name, function (type\Scope $scope) use ($id) {
-            return (new Composite($this, $scope))->import($id);
+        $this->export($name, function (type\Scope $scope) use ($source) {
+            return (new Composite($this, $scope))->import($source);
         });
         return $this;
     }
 
     /**
-     * @param $id
+     * @param $source
      * @param $name
      * @return type\Proxy
      */
-    public function insteadOf(string $id, string $name): type\Proxy
+    public function insteadOf(string $source, string $name): type\Proxy
     {
-        $this->export($id, function (type\Scope $scope) use ($name) {
-            return (new Composite($scope, $this))->import($name);
+        $this->export($source, function (type\Scope $scope) use ($name) {
+            return $scope->import($name);
         });
         return $this;
     }
 
 
     /** @inheritdoc */
-    public function fetch(string $id): \Closure
+    public function getProducer(string $id): \Closure
     {
         try {
-            return parent::fetch($id);
+            $producer = parent::getProducer($id);
         } catch (Undefined $e) {
+            $producer = $this->scope->getProducer($id);
         }
-        return $this->scope->fetch($id);
+        return function (type\Scope $scope) use ($producer) {
+            $scope = $this->delegateScope($scope);
+            return call_user_func($producer, $scope);
+        };
+    }
+
+    /**
+     * @param type\Scope $scope
+     * @return Composite
+     */
+    private function delegateScope(type\Scope $scope)
+    {
+        return new Composite(new Container($this->getProducers()), $scope, $this->scope);
     }
 
     /** @inheritdoc */
     public function bind(string $id, type\Scope $scope): type\Proxy
     {
-        $this->export($id, function (type\Scope $main) use ($scope) {
-            return new Composite($scope, $main, $this);
+        $this->export($id, function (type\Scope $main) use ($id, $scope) {
+            $scope = $this->delegateScope($main)->prepend($scope);
+            return call_user_func($this->scope->getProducer($id), $scope);
         });
+        return $this;
     }
 }

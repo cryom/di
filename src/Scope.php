@@ -3,6 +3,7 @@ namespace vivace\di;
 
 use vivace\di\error\IdentifierConflict;
 use vivace\di\error\RecursiveDependency;
+use vivace\di\error\Undefined;
 
 /**
  * Class Scope
@@ -11,7 +12,7 @@ use vivace\di\error\RecursiveDependency;
 abstract class Scope implements type\Scope
 {
     /** @var callable[] */
-    private $items = [];
+    private $producers = [];
 
     /** @var Composite */
     private $inherited;
@@ -26,9 +27,11 @@ abstract class Scope implements type\Scope
             throw new RecursiveDependency("Recursive dependency $id");
         }
         $this->stack[] = $id;
-        $factory = $this->fetch($id);
+        $producer = $this->getProducer($id);
         try {
-            return $factory($this);
+            $result = $producer($this);
+            array_pop($this->stack);
+            return $result;
         } catch (\Exception $e) {
             $this->stack = [];
             throw $e;
@@ -36,16 +39,24 @@ abstract class Scope implements type\Scope
     }
 
     /** @inheritdoc */
-    public function fetch(string $id): \Closure
+    public function getProducer(string $id): \Closure
     {
 
-        if (isset($this->items[$id])) {
-            $factory = $this->items[$id];
-            return function (type\Scope $scope) use ($factory) {
-                return call_user_func($factory, $scope);
-            };
+        if (isset($this->producers[$id])) {
+            $producer = $this->producers[$id];
+            if (!$producer instanceof \Closure) {
+                return function (type\Scope $scope) use ($producer) {
+                    return call_user_func($producer, $scope);
+                };
+            }
+            return $producer;
         }
-        return $this->getInherited()->fetch($id);
+
+        if (!$this->inherited) {
+            throw new Undefined("Undefined index $id");
+        }
+
+        return $this->getInherited()->getProducer($id);
     }
 
     /**
@@ -68,28 +79,36 @@ abstract class Scope implements type\Scope
     }
 
     /**
-     * @param callable $factory
+     * @param callable $producer
      * @return callable
      */
-    public function bindTo(callable $factory): callable
+    public function bindTo(callable $producer): callable
     {
-        return function (type\Scope $scope) use ($factory) {
-            return call_user_func($factory, (new Composite($scope, $this)));
+        return function (type\Scope $scope) use ($producer) {
+            return call_user_func($producer, (new Composite($scope, $this)));
         };
     }
 
     /**
      * @param string $id
-     * @param callable $factory
+     * @param callable $producer
      * @return $this|type\Scope
      * @throws IdentifierConflict
      */
-    final protected function export(string $id, callable $factory): type\Scope
+    final protected function export(string $id, callable $producer): type\Scope
     {
-        if (isset($this->items[$id])) {
+        if (isset($this->producers[$id])) {
             throw new IdentifierConflict("Name conflict. Identifier $id already declared");
         }
-        $this->items[$id] = $factory;
+        $this->producers[$id] = $producer;
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getProducers(): array
+    {
+        return $this->producers;
     }
 }

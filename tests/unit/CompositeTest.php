@@ -28,8 +28,8 @@ class CompositeTest extends \Codeception\Test\Unit
     public function testFetch()
     {
         $scope = $this->getScope();
-        $this->tester->assertInstanceOf(Closure::class, $scope->fetch('bar'));
-        $this->tester->assertInstanceOf(Closure::class, $scope->fetch('foo'));
+        $this->tester->assertInstanceOf(Closure::class, $scope->getProducer('bar'));
+        $this->tester->assertInstanceOf(Closure::class, $scope->getProducer('foo'));
     }
 
     // tests
@@ -70,5 +70,12 @@ class CompositeTest extends \Codeception\Test\Unit
         $scope = $this->getScope();
         $scope->prepend($this->tester->newScope(['bar' => 'newbar']));
         $this->tester->assertEquals('newbar', $scope->import('bar'));
+    }
+
+    public function testException()
+    {
+        $this->tester->expectException(\vivace\di\error\Undefined::class, function(){
+            $this->getScope()->getProducer('undefined');
+        });
     }
 }

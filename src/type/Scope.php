@@ -22,13 +22,13 @@ interface Scope
      * @param string $id
      * @return \Closure
      */
-    public function fetch(string $id): \Closure;
+    public function getProducer(string $id): \Closure;
 
     /**
-     * @param callable $factory
+     * @param callable $producer
      * @return callable
      */
-    public function bindTo(callable $factory): callable;
+    public function bindTo(callable $producer): callable;
 
 
 }

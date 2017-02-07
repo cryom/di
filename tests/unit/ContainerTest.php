@@ -87,4 +87,28 @@ class ContainerTest extends \Codeception\Test\Unit
 
         $this->tester->assertEquals('newbarfoo', $main->import('foo'));
     }
+
+    public function testBind()
+    {
+        $children = new \vivace\di\Container([
+            'a' => function (Scope $scope) {
+                return $scope->import('z');
+            },
+        ]);
+        $main = new \vivace\di\Container(
+            [
+                'z' => 'z',
+            ],
+            [
+                $children,
+                'bind' => [
+                    'a' => new \vivace\di\Container([
+                        'z' => 'D',
+                    ]),
+                ],
+            ]
+        );
+
+        $this->tester->assertEquals('D', $main->import('a'));
+    }
 }
