@@ -28,7 +28,7 @@ interface Scope
      * @param callable $factory
      * @return callable
      */
-    public function bind(callable $factory): callable;
+    public function bindTo(callable $factory): callable;
 
 
 }

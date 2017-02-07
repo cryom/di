@@ -71,7 +71,7 @@ abstract class Scope implements type\Scope
      * @param callable $factory
      * @return callable
      */
-    public function bind(callable $factory): callable
+    public function bindTo(callable $factory): callable
     {
         return function (type\Scope $scope) use ($factory) {
             return call_user_func($factory, (new Composite($scope, $this)));

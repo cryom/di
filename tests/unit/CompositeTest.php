@@ -47,7 +47,7 @@ class CompositeTest extends \Codeception\Test\Unit
 
         $mainScope = $this->tester->newScope(['baz' => 'baz']);
 
-        $factory = $scope->bind(function (\vivace\di\type\Scope $scope) {
+        $factory = $scope->bindTo(function (\vivace\di\type\Scope $scope) {
             return $scope->import('bar') . $scope->import('baz');
         });
 

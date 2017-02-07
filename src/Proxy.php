@@ -23,26 +23,26 @@ class Proxy extends Scope implements type\Proxy
     }
 
     /**
-     * @param $source
+     * @param $id
      * @param $name
      * @return type\Proxy
      */
-    public function as ($source, $name): type\Proxy
+    public function as(string $id, string $name): type\Proxy
     {
-        $this->export($name, function (type\Scope $scope) use ($source) {
-            return (new Composite($this, $scope))->import($source);
+        $this->export($name, function (type\Scope $scope) use ($id) {
+            return (new Composite($this, $scope))->import($id);
         });
         return $this;
     }
 
     /**
-     * @param $source
+     * @param $id
      * @param $name
      * @return type\Proxy
      */
-    public function insteadOf($source, $name): type\Proxy
+    public function insteadOf(string $id, string $name): type\Proxy
     {
-        $this->export($source, function (type\Scope $scope) use ($name) {
+        $this->export($id, function (type\Scope $scope) use ($name) {
             return (new Composite($scope, $this))->import($name);
         });
         return $this;
@@ -57,5 +57,13 @@ class Proxy extends Scope implements type\Proxy
         } catch (Undefined $e) {
         }
         return $this->scope->fetch($id);
+    }
+
+    /** @inheritdoc */
+    public function bind(string $id, type\Scope $scope): type\Proxy
+    {
+        $this->export($id, function (type\Scope $main) use ($scope) {
+            return new Composite($scope, $main, $this);
+        });
     }
 }

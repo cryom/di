@@ -170,7 +170,7 @@ class ScopeTest extends \Codeception\Test\Unit
         $scope = $this->newScope([
             'export' => ['bar' => 'bar']
         ]);
-        $factory = $this->newDefaultScope()->bind(function (di\type\Scope $scope) {
+        $factory = $this->newDefaultScope()->bindTo(function (di\type\Scope $scope) {
             return $scope->import('foo') . $scope->import('bar');
         });
         $this->assertEquals('i_factorybar', $factory($scope));

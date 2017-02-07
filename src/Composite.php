@@ -52,7 +52,7 @@ class Composite implements type\Composite
      * @param callable $factory
      * @return callable
      */
-    public function bind(callable $factory): callable
+    public function bindTo(callable $factory): callable
     {
         return function (Scope $scope) use ($factory) {
             return call_user_func($factory, new self($scope, $this));
