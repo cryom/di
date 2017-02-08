@@ -8,55 +8,74 @@
 [![Monthly Downloads](https://poser.pugx.org/vivace/di/d/monthly)](https://packagist.org/packages/vivace/di)
 #### Example:
 
+ControlPanel.php
 ```php
-class Models extends vivace\di\Scope{
-   public function __construct(){
-      
-      $this->export('\PDO', function(){
-         return new \PDO('default_pdo_connection');
-      });
-      
-      $this->export('models\User', function(vivace\di\type Scope $scope){
-         return new models\User($scope->import('\PDO'));
-      });
-      
-      $this->export('models\Auth', function(vivace\di\type Scope $scope){
-         return new models\Auth($scope->import('\PDO'));
-      });
-   
-   }
+class ControlPanel extends \vivace\di\Scope
+{
+    public function __construct()
+    {
+        $this->export(\psr\Log\LoggerInterface::class, function (\vivace\di\type\Scope $scope) {
+            return MyDbLogger($scope->import(PDO::class));
+        });
+    }
 }
-
-class Main extends vivace\di\Scope {
-  private $instances = [];
-  public function __construct(){
-    
-    $this->export('db_main', function(){
-      return $this->newDbConnection('<dsn_for_db_main>');
-    });
-    
-    $this->export('db_auth', function(){
-      return $this->newDbConnection('<dsn_for_db_auth>');
-    })
-    
-    $this->inherit(new Models())
-        ->bind('Model\Auth', ['\PDO' => 'db_auth'])
-        ->as('Model\Auth', 'Common\Auth')
-        ->insteadOf('\PDO', 'db_main');
-    
-  }
-  
-  public function newDbConnection(string $dsn){
-    return $this->instances[$dsn] ?? $this->instances[$dsn] = new \PDO($dsn);
-  }
+```
+Blog.php
+```php
+class Blog extends \vivace\di\Scope
+{
+    public function __construct()
+    {
+        $this->export(\psr\Log\LoggerInterface::class, function (\vivace\di\type\Scope $scope) {
+            return BlogDbLogger($scope->import(PDO::class));
+        });
+    }
 }
+```
+Main.php
+```php
+class Main extends \vivace\di\Scope
+{
+    /** @var array */
+    private $pdoInstances = [];
 
-////////index.php
+    /**
+     * Main constructor.
+     * @param array $config
+     */
+    public function __construct(array $config)
+    {
+        $this->export('db_control_panel', function () use ($config) {
+            return $this->producePdo('pgsql://dsn_db_control_panel');
+        });
 
+        $this->export('db_blog', function () {
+            return $this->producePdo('pgsql://dsn_db_blog');
+        });
 
-$scope = new Main();
+        $this->inherit(new ControlPanel())
+            ->insteadOf(PDO::class, 'db_control_panel')
+            ->as(\psr\Log\LoggerInterface::class, 'control_panel_logger');
 
-$auth = $scope->import('Common\Auth'); // equal to $scope->import('models\Auth')
-$pdo = $scope->import('\PDO');// equal to $scope->import('db_auth')
-$user = $scope->import('models\User');
+        $this->inherit(new Blog())
+            ->insteadOf(PDO::class, 'db_blog')
+            ->as(\psr\Log\LoggerInterface::class, 'blog_logger');
+    }
+
+    /**
+     * @param string $dsn
+     * @return mixed|PDO
+     */
+    protected function producePdo(string $dsn)
+    {
+        return $this->pdoInstances[$dsn] ?? $this->pdoInstances[$dsn] = new PDO($dsn);
+    }
+}
+```
+index.php
+```php
+$main = new Main(['config' => 'value']);
+
+$main->import('blog_logger')->emergency('Message for blog logger');
+$main->import('control_panel_logger')->emergency('Message for control panel');
 ```
