@@ -22,6 +22,7 @@ class Meta implements type\Meta
         if ($r = $this->reflect($target)) {
             foreach ($r->getParameters() as $parameter) {
                 $item = [
+                    'pos' => $parameter->getPosition(),
                     'name' => $parameter->getName(),
                 ];
                 if ($class = $parameter->getClass()) {

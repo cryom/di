@@ -24,6 +24,7 @@ class InjectorTest extends \Codeception\Test\Unit
     public function testResolveByClassName()
     {
         $meta = new \vivace\di\Meta();
+        /** @var \vivace\di\type\Scope $scope */
         $scope = $this->tester->newScope([Magneto::class => function () {
             return new Magneto();
         }]);
@@ -135,5 +136,28 @@ class InjectorTest extends \Codeception\Test\Unit
 
         $result = $injector->resolve(Xavier::class);
         $this->tester->assertInstanceOf(Quicksilver::class, $result[0]);
+    }
+
+    public function testNew()
+    {
+        /** @var \vivace\di\type\Scope $scope */
+        $scope = $this->tester->newScope([
+            \vivace\di\tests\Deadpool::class => function (\vivace\di\type\Scope $scope) {
+                return new \vivace\di\tests\Deadpool('val', $scope->import(Magneto::class));
+            },
+            Magneto::class => function () {
+                return new Magneto();
+            },
+        ]);
+
+        $injector = new \vivace\di\Injector($scope, new \vivace\di\Meta());
+        $object = $injector->new(\vivace\di\tests\Wolverine::class);
+        $this->assertInstanceOf(\vivace\di\tests\Wolverine::class, $object);
+        $object = $injector->new(\vivace\di\tests\X23::class, [
+            Xavier::class => function () {
+                return new Xavier();
+            },
+        ]);
+        $this->assertInstanceOf(\vivace\di\tests\X23::class, $object);
     }
 }

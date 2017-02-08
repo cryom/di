@@ -29,39 +29,90 @@ class Injector
     }
 
     /**
+     * @return array
+     */
+    protected function getResolvers(): array
+    {
+        return [
+            [$this, 'resolveByType'],
+            [$this, 'resolveByName'],
+            [$this, 'resolveByDefault'],
+        ];
+    }
+
+    /**
+     * @param array $meta
+     * @param Scope $scope
+     * @return mixed
+     * @throws Undefined
+     */
+    protected function resolveByType(array $meta, Scope $scope)
+    {
+        if (isset($meta['type'])) {
+            return $scope->import($meta['type']);
+        }
+        $name = $meta['name'];
+        throw new Undefined("Undefined $name");
+    }
+
+    /**
+     * @param array $meta
+     * @param Scope $scope
+     * @return mixed
+     * @throws Undefined
+     */
+    protected function resolveByName(array $meta, Scope $scope)
+    {
+        return $scope->import($meta['name']);
+    }
+
+    /**
+     * @param array $meta
+     * @return mixed
+     * @throws Undefined
+     */
+    protected function resolveByDefault(array $meta)
+    {
+        if (array_key_exists('default', $meta)) {
+            return $meta['default'];
+        }
+        $name = $meta['name'];
+        throw new Undefined("Undefined $name");
+    }
+    /**
      * @param $target
+     * @param array $arguments
      * @return array
      * @throws NotResolved
      */
-    public function resolve($target): array
+    public function resolve($target, array $arguments = []): array
     {
         $dependencies = $this->meta->dependencies($target);
         $parameters = [];
+
+        $scope = $arguments ? new Composite(new Container($arguments), $this->scope) : $this->scope;
         foreach ($dependencies as $pos => $dependency) {
-            if (isset($dependency['type']) && class_exists($dependency['type'])) {
+            foreach ($this->getResolvers() as $resolver) {
                 try {
-                    $parameters[$pos] = $this->scope->import($dependency['type']);
-                    continue;
+                    $parameters[$pos] = call_user_func($resolver, $dependency, $scope);
+                    continue(2);
                 } catch (Undefined $e) {
                 }
             }
-            try {
-                $parameters[$pos] = $this->scope->import($dependency['name']);
-                continue;
-            } catch (Undefined $e) {
-            }
-
-            if (array_key_exists('default', $dependency)) {
-                $parameters[$pos] = $dependency['default'];
-                continue;
-            }
-            $name = $dependency['name'] . '%' . $pos;
-            if (isset($dependency['type'])) {
-                $name = '(' . $dependency['type'] . ') ' . $name;
-            }
-            throw new NotResolved("Dependency $name not resolver");
+            $message = '(' . ($dependency['type'] ?? 'mixed') . ') ' . $dependency['name'] . '%' . $pos;
+            throw new NotResolved("Dependency $message not resolver");
         }
 
         return $parameters;
+    }
+
+    /**
+     * @param string $className
+     * @param array $arguments
+     * @return object
+     */
+    public function new(string $className, array $arguments = [])
+    {
+        return new $className(...$this->resolve($className, $arguments));
     }
 }

@@ -33,3 +33,16 @@ class Xavier
     }
 }
 
+class Wolverine{
+    public function __construct(Deadpool $deadpool)
+    {
+    }
+}
+
+class X23 extends Wolverine{
+    public function __construct(Deadpool $deadpool, Xavier $xavier)
+    {
+        parent::__construct($deadpool);
+    }
+}
+
