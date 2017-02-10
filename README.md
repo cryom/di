@@ -8,24 +8,32 @@
 [![Monthly Downloads](https://poser.pugx.org/vivace/di/d/monthly)](https://packagist.org/packages/vivace/di)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/php-vivace/di/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/php-vivace/di/?branch=master)
 
-__vivace\di__ - Inversion of Control container is at the basis of which is the possibility of inheritance of containers with the ability to resolve the collision dependency, almost the same as it is implemented in the __traits__.
+## About
+__vivace\di__ -  a container of Inversion of Control. The basis is the possibility of inheritance of containers(further _Scope_) with the ability to resolve the collision dependency, almost the same as it is implemented in the __traits__. Support __autowired__ (through reflection api with an opportunity caching)
 
+You can create multiple _scopes_, which will eventually be combined into the main area of action. Look at the following example:
 
-## Example:
-
-ControlPanel.php
+ControlPanel.php -  _Scope_ for resolving dependency for control panel module.
 ```php
 class ControlPanel extends \vivace\di\Scope
 {
     public function __construct()
     {
+        //export in the "Scope" logging component to the factory can get it
         $this->export(\psr\Log\LoggerInterface::class, function (\vivace\di\type\Scope $scope) {
             return MyDbLogger($scope->import(PDO::class));
         });
     }
 }
 ```
-Blog.php
+```php
+$scope = new ControlPanel();
+$scope->import(\psr\Log\LoggerInterface::class);
+//An exception is thrown, due to the fact that in the "Scope" is not exported object PDO class.
+//Ok, see further
+```
+
+Blog.php - _Scope_ for resolving dependency for blog module.
 ```php
 class Blog extends \vivace\di\Scope
 {
@@ -37,7 +45,7 @@ class Blog extends \vivace\di\Scope
     }
 }
 ```
-Main.php
+Main.php -  
 ```php
 class Main extends \vivace\di\Scope
 {
