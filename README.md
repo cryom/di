@@ -1,4 +1,4 @@
-# vivace\di
+
 [![Build Status](https://travis-ci.org/php-vivace/di.svg?branch=master)](https://travis-ci.org/php-vivace/di)
 [![Code Climate](https://codeclimate.com/github/php-vivace/di/badges/gpa.svg)](https://codeclimate.com/github/php-vivace/di)
 [![Test Coverage](https://codeclimate.com/github/php-vivace/di/badges/coverage.svg)](https://codeclimate.com/github/php-vivace/di/coverage)
@@ -8,8 +8,10 @@
 [![Monthly Downloads](https://poser.pugx.org/vivace/di/d/monthly)](https://packagist.org/packages/vivace/di)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/php-vivace/di/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/php-vivace/di/?branch=master)
 
+__vivace\di__ - Inversion of Control container is at the basis of which is the possibility of inheritance of containers with the ability to resolve the collision dependency, almost the same as it is implemented in the __traits__.
 
-#### Example:
+
+## Example:
 
 ControlPanel.php
 ```php
