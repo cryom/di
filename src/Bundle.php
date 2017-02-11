@@ -9,7 +9,7 @@ use vivace\di\error\Undefined;
  * Class Scope
  * @package vivace\di
  */
-abstract class Scope implements type\Scope
+abstract class Bundle implements type\Scope
 {
     /** @var callable[] */
     private $producers = [];

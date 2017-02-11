@@ -78,4 +78,29 @@ class CompositeTest extends \Codeception\Test\Unit
             $this->getScope()->getProducer('undefined');
         });
     }
+
+    public function testFlowImport()
+    {
+        $scope1 = $this->tester->newScope([
+            'a' => function (\vivace\di\type\Scope $scope) {
+                return '1' . $scope->import('a');
+            },
+        ]);
+        $scope2 = $this->tester->newScope([
+            'a' => function (\vivace\di\type\Scope $scope) {
+                return '2' . $scope->import('a');
+            },
+        ]);
+        $composite1 = new \vivace\di\Composite(
+            $this->tester->newScope([
+                'a' => function (\vivace\di\type\Scope $scope) {
+                    return '3' . $scope->import('a');
+                },
+            ]),
+            $this->tester->newScope(['a' => '4'])
+        );
+        $composite = new \vivace\di\Composite($scope1, $scope2, $composite1);
+
+        $this->tester->assertEquals('1234', $composite->import('a'));
+    }
 }

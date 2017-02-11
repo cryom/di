@@ -8,9 +8,9 @@ use vivace\di\type;
  * Class Proxy
  * @package vivace\di
  */
-class Proxy extends Scope implements type\Proxy
+class Proxy extends Bundle implements type\Proxy
 {
-    /** @var Scope */
+    /** @var Bundle */
     private $scope;
 
     /**
@@ -69,7 +69,11 @@ class Proxy extends Scope implements type\Proxy
      */
     private function delegateScope(type\Scope $scope)
     {
-        return new Composite(new Container($this->getProducers()), $scope, $this->scope);
+        $composite = new Composite($scope, $this);
+        if ($producers = $this->getProducers()) {
+            $composite->prepend(new Container($producers));
+        }
+        return $composite;
     }
 
     /** @inheritdoc */

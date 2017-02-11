@@ -7,7 +7,7 @@ use vivace\di\type;
  * Class Container
  * @package vivace\di
  */
-class Container extends Scope
+class Container extends Bundle
 {
 
     /**

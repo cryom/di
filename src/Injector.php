@@ -10,9 +10,9 @@ use vivace\di\type\Scope;
  * Class Injector
  * @package vivace\di
  */
-class Injector
+class Injector implements \vivace\di\type\Injector
 {
-    /** @var Scope */
+    /** @var Bundle */
     private $scope;
     /** @var Meta */
     private $meta;
@@ -97,10 +97,11 @@ class Injector
                     $parameters[$pos] = call_user_func($resolver, $dependency, $scope);
                     continue(2);
                 } catch (Undefined $e) {
+                    continue;
                 }
             }
-            $message = '(' . ($dependency['type'] ?? 'mixed') . ') ' . $dependency['name'] . '%' . $pos;
-            throw new NotResolved("Dependency $message not resolver");
+            $signature = '(' . ($dependency['type'] ?? 'mixed') . ') ' . $dependency['name'] . '%' . $pos;
+            throw new NotResolved("Necessary resolve dependencies for $signature");
         }
 
         return $parameters;
@@ -114,5 +115,15 @@ class Injector
     public function new(string $className, array $arguments = [])
     {
         return new $className(...$this->resolve($className, $arguments));
+    }
+
+    /**
+     * @param callable $function
+     * @param array $arguments
+     * @return mixed
+     */
+    public function call(callable $function, array $arguments = [])
+    {
+        return call_user_func_array($function, $this->resolve($function, $arguments));
     }
 }

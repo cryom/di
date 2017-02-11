@@ -3,7 +3,7 @@
 
 use vivace\di;
 
-class ScopeTest extends \Codeception\Test\Unit
+class BundleTest extends \Codeception\Test\Unit
 {
     /**
      * @var \UnitTester
@@ -30,11 +30,11 @@ class ScopeTest extends \Codeception\Test\Unit
 
     /**
      * @param array $config
-     * @return di\Scope
+     * @return di\Bundle
      */
-    protected function newScope(array $config = []): di\Scope
+    protected function newScope(array $config = []): di\Bundle
     {
-        return new class($config) extends di\Scope
+        return new class($config) extends di\Bundle
         {
             public function __construct(array $config)
             {
@@ -58,9 +58,9 @@ class ScopeTest extends \Codeception\Test\Unit
     }
 
     /**
-     * @return di\Scope
+     * @return di\Bundle
      */
-    protected function newDefaultScope(): di\Scope
+    protected function newDefaultScope(): di\Bundle
     {
         return $this->newScope([
             'export' => [
@@ -73,7 +73,7 @@ class ScopeTest extends \Codeception\Test\Unit
     public function testExportIdentifierConflict()
     {
         $this->tester->expectException(di\error\IdentifierConflict::class, function () {
-            $scope = new class extends di\Scope
+            $scope = new class extends di\Bundle
             {
                 public function __construct()
                 {

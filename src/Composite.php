@@ -12,9 +12,10 @@ use vivace\di\type\Scope;
 class Composite implements type\Composite
 {
 
-    /** @var Scope[] */
+    /** @var Bundle[] */
     private $scopes;
-
+    /** @var Bundle[][] */
+    private static $stack = [];
     /**
      * Composite constructor.
      * @param Scope[] ...$scopes
@@ -39,11 +40,29 @@ class Composite implements type\Composite
     /** @inheritdoc */
     public function getProducer(string $id): \Closure
     {
-        foreach ($this->scopes as $scope) {
-            try {
-                return $scope->getProducer($id);
-            } catch (Undefined $e) {
+        foreach ($this->scopes as $key => $scope) {
+            if (isset(self::$stack[$id]) && in_array($scope, self::$stack[$id])) {
+                continue;
             }
+            try {
+                $producer = $scope->getProducer($id);
+            } catch (Undefined $e) {
+                continue;
+            }
+            if (!$scope instanceof self) {
+                $producer = function (Scope $main) use ($scope, $producer, $id) {
+                    self::$stack[$id][] = $scope;
+                    $count = count(self::$stack[$id]);
+                    $offset = $count - 1;
+                    $result = call_user_func($producer, $main);
+                    unset(self::$stack[$id][$offset]);
+                    if ($count == 1) {
+                        unset(self::$stack[$id]);
+                    }
+                    return $result;
+                };
+            }
+            return $producer;
         }
         throw new Undefined("Undefined index $id");
     }

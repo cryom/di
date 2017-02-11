@@ -15,11 +15,11 @@ class Unit extends \Codeception\Module
     /**
      * @param array $factories
      * @param array ...$parents
-     * @return di\Scope
+     * @return di\Bundle
      */
-    public function newScope(array $factories, ...$parents): di\Scope
+    public function newScope(array $factories, ...$parents): di\Bundle
     {
-        return new class($factories, $parents) extends di\Scope
+        return new class($factories, $parents) extends di\Bundle
         {
             /**
              *  constructor.
