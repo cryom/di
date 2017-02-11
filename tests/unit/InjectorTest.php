@@ -160,4 +160,20 @@ class InjectorTest extends \Codeception\Test\Unit
         ]);
         $this->assertInstanceOf(\vivace\di\tests\X23::class, $object);
     }
+
+    public function testCall()
+    {
+        $injector = new \vivace\di\Injector(new \vivace\di\Container([
+            Magneto::class => function () {
+                return new Magneto();
+            },
+        ]), new \vivace\di\Meta());
+
+        $result = $injector->call(function ($a, Magneto $magneto) {
+            return [$a, $magneto];
+        }, ['a' => 1]);
+
+        $this->tester->assertEquals(1, $result[0]);
+        $this->tester->assertInstanceOf(Magneto::class, $result[1]);
+    }
 }
