@@ -17,9 +17,11 @@ function xdebug-enable() {
 function run-tests() {
     if [[ "$WITH_COVERAGE" == "true" ]]; then
         xdebug-enable
-        vendor/bin/codecept run unit --coverage-xml
+        vendor/bin/phpunit --testsuite=unit --coverage-text --coverage-clover build/logs/clover.xml
+        CODECLIMATE_REPO_TOKEN="f759558562762398c32879d47ef81bf3ac597cb09e36b1b57685cf2b68264479" vendor/bin/test-reporter --stdout > codeclimate.json
+        curl -X POST -d @codeclimate.json -H "Content-Type: application/json" -H "User-Agent: Code Climate (PHP Test Reporter v0.1.1)" https://codeclimate.com/test_reports;
         xdebug-disable
     else
-       vendor/bin/codecept run unit
+       vendor/bin/phpunit --testsuite=unit
     fi
 }

@@ -20,5 +20,3 @@ install:
     - if [[ "$WITH_LOWEST" == "true" ]]; then composer update --prefer-dist; else composer install --prefer-dist; fi
 script:
     - run-tests
-after_success:
-  - if [[ "$WITH_COVERAGE" == "true" ]]; then php composer/bin/test-reporter --coverage-report ./tests/_output/coverage.xml; fi

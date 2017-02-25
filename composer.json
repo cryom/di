@@ -1,11 +1,17 @@
 {
   "name": "vivace/di",
-  "description": "Inversion of control(IoC) library",
+  "description": "Inversion of Control container with support for advanced inheritance of the container.",
+  "keywords": [
+    "inversion",
+    "dependency",
+    "di"
+  ],
   "type": "library",
   "require-dev": {
-    "codeception/codeception": "^2.2",
-    "codeclimate/php-test-reporter": "^0.4.2"
+    "codeclimate/php-test-reporter": "^0.4.2",
+    "phpunit/phpunit": "^6.0"
   },
+  "license": "MIT",
   "authors": [
     {
       "name": "Albert Sultanov",
@@ -18,10 +24,11 @@
         "vivace\\di\\":"src/"
     },
     "files":[
-      "src/constants.php"
+      "src/functions.php"
     ]
   },
   "require": {
-    "psr/cache": "^1.0"
+    "psr/cache": "^1.0",
+    "psr/container": "^1.0"
   }
 }

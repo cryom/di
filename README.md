@@ -8,87 +8,120 @@
 [![Monthly Downloads](https://poser.pugx.org/vivace/di/d/monthly)](https://packagist.org/packages/vivace/di)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/php-vivace/di/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/php-vivace/di/?branch=master)
 
-## About
-__vivace\di__ -  a container of Inversion of Control. The basis is the possibility of inheritance of containers(further _Scope_) with the ability to resolve the collision dependency, almost the same as it is implemented in the __traits__. Support __autowired__ (through reflection api with an opportunity caching)
+## Synopsis
+Inversion of Control container with support for advanced inheritance of the container.
 
-You can create multiple _scopes_, which will eventually be combined into the main area of action. Look at the following example:
+## Code Example
 
-ControlPanel.php -  _Scope_ for resolving dependency for control panel module.
+vendor/name/PackageA.php
 ```php
-class ControlPanel extends \vivace\di\Scope
+class PackageA extends \vivace\di\Package
 {
     public function __construct()
     {
-        //export in the "Scope" logging component to the factory can get it
-        $this->export(\psr\Log\LoggerInterface::class, function (\vivace\di\type\Scope $scope) {
-            return MyDbLogger($scope->import(PDO::class));
+        $this->export('vendorA\tool\ClassA', function (\vivace\di\Scope $scope) {
+            $logger = $scope->import(Psr\Log\LoggerInterface::class);
+            $db = $scope->import(\PDO::class);
+            $cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
+            return new vendorA\tool\ClassA($db, $cache, $logger);
+        });
+
+        $this->export('vendorA\tool\ClassB', function (\vivace\di\Scope $scope) {
+            $db = $scope->import(\PDO::class);
+            $cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
+            return new vendorA\tool\ClassB($db, $cache);
         });
     }
 }
 ```
+
+libs/RedisCache.php
 ```php
-$scope = new ControlPanel();
-$scope->import(\psr\Log\LoggerInterface::class);
-//An exception is thrown, due to the fact that in the "Scope" is not exported object PDO class.
-//Ok, see further
+class RedisCache extends \vivace\di\Package
+{
+    public function __construct(string $prefix = null)
+    {
+        $this->export(\Psr\Cache\CacheItemPoolInterface::class, function (\vivace\di\Scope $scope) use ($prefix) {
+            static $instance;
+            if ($instance) {
+                return $instance;
+            }
+            $logger = $scope->import(Psr\Log\LoggerInterface::class);
+            $instance = new RedisCache();
+            $instance->setPrefix($prefix);
+            $instance->setLogger($logger);
+            return $instance;
+        });
+    }
+}
 ```
 
-Blog.php - _Scope_ for resolving dependency for blog module.
+app/Main.php
 ```php
-class Blog extends \vivace\di\Scope
+class Main extends \vivace\di\Package
 {
     public function __construct()
     {
-        $this->export(\psr\Log\LoggerInterface::class, function (\vivace\di\type\Scope $scope) {
-            return BlogDbLogger($scope->import(PDO::class));
+        $this->export('cache.dummy', function () {
+            return new DummyCache();
         });
+        //By default, all logs are written to the file
+        $this->export(\Psr\Log\LoggerInterface::class, function () {
+            return new FileLogger();
+        });
+        //Default db connection
+        $this->export(PDO::class, function () {
+            return new PDO('<main_db_dsn>');
+        });
+        //Additional db connection
+        $this->export('db.second', function () {
+            return new PDO('<main_db_dsn>');
+        });
+
+        $this->use(new RedisCache('app_prefix'))
+            ->as(\Psr\Cache\CacheItemPoolInterface::class, 'cache.redis');
+
+        $this->use(new PackageA())
+            //Disable the cache through the use of "DummyCache" for "vendor\tool\ClassB"
+            ->insteadFor('vendorA\tool\ClassB', \vivace\di\Package::new([
+                \Psr\Cache\CacheItemPoolInterface::class => 'cache.dummy'
+            ]))
+            ->insteadOf(\Psr\Cache\CacheItemPoolInterface::class, 'cache.redis')
+            ->insteadOf(PDO::class, 'db.second');
     }
 }
+
 ```
-Main.php -  
+
+web/index.php
+
 ```php
-class Main extends \vivace\di\Scope
-{
-    /** @var array */
-    private $pdoInstances = [];
-
-    /**
-     * Main constructor.
-     * @param array $config
-     */
-    public function __construct(array $config)
-    {
-        $this->export('db_control_panel', function () use ($config) {
-            return $this->producePdo('pgsql://dsn_db_control_panel');
-        });
-
-        $this->export('db_blog', function () {
-            return $this->producePdo('pgsql://dsn_db_blog');
-        });
-
-        $this->inherit(new ControlPanel())
-            ->insteadOf(PDO::class, 'db_control_panel')
-            ->as(\psr\Log\LoggerInterface::class, 'control_panel_logger');
-
-        $this->inherit(new Blog())
-            ->insteadOf(PDO::class, 'db_blog')
-            ->as(\psr\Log\LoggerInterface::class, 'blog_logger');
-    }
-
-    /**
-     * @param string $dsn
-     * @return mixed|PDO
-     */
-    protected function producePdo(string $dsn)
-    {
-        return $this->pdoInstances[$dsn] ?? $this->pdoInstances[$dsn] = new PDO($dsn);
-    }
-}
+$scope = new Main();
+$instanceB = $scope->import(vendorA\tool\ClassB::class);
+$instanceA = $scope->import(vendorA\tool\ClassA::class);
+$cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
 ```
-index.php
-```php
-$main = new Main(['config' => 'value']);
+## Motivation
 
-$main->import('blog_logger')->emergency('Message for blog logger');
-$main->import('control_panel_logger')->emergency('Message for control panel');
+It took the opportunity to create a portable and extensible Inversion of Control containers
+
+## Installation
+```bash
+composer require vivace/di
 ```
+
+## API Reference
+
+...
+
+## Tests
+
+...
+
+## Contributors
+
+...
+
+## License
+
+...

@@ -4,5 +4,5 @@ RUN apt-get update && rm -rf /var/lib/apt/lists/* \
     && yes | pecl install xdebug  && docker-php-ext-enable xdebug
 COPY ./conf.d /usr/local/etc/php/conf.d
 WORKDIR /app
-ENTRYPOINT ["./vendor/bin/codecept"]
+ENTRYPOINT ["./vendor/bin/phpunit"]
 

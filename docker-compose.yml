@@ -16,7 +16,7 @@ services:
       - ~/.ssh:/root/.ssh
     environment:
       CODECLIMATE_REPO_TOKEN: f759558562762398c32879d47ef81bf3ac597cb09e36b1b57685cf2b68264479
-    command: [--coverage-report, ./tests/_output/coverage.xml]
+    command: [--coverage-report, ./build/logs/clover.xml]
 
   composer:
     build: ./docker/composer
@@ -24,10 +24,10 @@ services:
       - ./:/app
       - ~/.ssh:/root/.ssh
 
-  codecept:
-    build: ./docker/codecept
+  phpunit:
+    build: ./docker/phpunit
     volumes:
       - ./:/app
     environment:
-      XDEBUG_CONFIG: remote_host=192.168.100.6
+      XDEBUG_CONFIG: remote_host=192.168.100.2
       PHP_IDE_CONFIG: serverName=xdebug

@@ -1,64 +1,53 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: albertsultanov
+ * Date: 24.02.17
+ * Time: 1:04
+ */
+
 namespace vivace\di;
 
-use vivace\di\type;
 
-/**
- * Class Container
- * @package vivace\di
- */
-class Container extends Bundle
+use Psr\Container\ContainerInterface;
+use vivace\di\exception;
+
+abstract class Container implements ContainerInterface
 {
+    protected $factories = [];
+
+    /** @inheritdoc */
+    public function get($id): callable
+    {
+        if (!isset($this->factories[$id])) {
+            throw new exception\NotFound("$id not defined");
+        }
+        return $this->factories[$id];
+    }
+
+    /** @inheritdoc */
+    public function has($id): bool
+    {
+        return isset($this->factories[$id]);
+    }
 
     /**
-     * Container constructor.
-     * @param array $factories Map of factories. <br/>
-     *      Example: <br/>
-     *      [YouClass::class => 'YouFactoryFunction', ...]
-     *
-     * @param type\Scope[]|array[] ...$parents <br/>
-     *          Example: <br/>
-     *          $container = new Container(
-     *              [...],
-     *              new ParentScope(),
-     *              [new OtherScope(), 'as' => ['source' => 'alias'], 'insteadOf' => ['source' => 'alias']]
-     *          )
+     * @param iterable $factories
+     * @return Container
      */
-    public function __construct(array $factories, ...$parents)
+    public static function new(iterable $factories)
     {
-        foreach ($factories as $id => $factory) {
-            if (!is_callable($factory)) {
-                $value = $factory;
-                $factory = function () use ($value) {
-                    return $value;
-                };
-            }
-            $this->export($id, $factory);
-        }
-        foreach ($parents as $parent) {
-            $options = [];
-            if (is_array($parent)) {
-                list($parent, $options) = [array_shift($parent), $parent];
-            }
-            $proxy = $this->inherit($parent);
-
-            if (isset($options['as'])) {
-                foreach ($options['as'] as $source => $alias) {
-                    $proxy->as($source, $alias);
+        return new class($factories) extends Container
+        {
+            public function __construct($factories)
+            {
+                foreach ($factories as $id => $factory) {
+                    if (!is_callable($factory)) {
+                        throw new exception\BadDefinition("Factory $id must be callable.");
+                    }
+                    $this->factories[$id] = $factory;
                 }
             }
-
-            if (isset($options['insteadOf'])) {
-                foreach ($options['insteadOf'] as $source => $alias) {
-                    $proxy->insteadOf($source, $alias);
-                }
-            }
-
-            if (isset($options['bind'])) {
-                foreach ($options['bind'] as $id => $scope) {
-                    $proxy->bind($id, $scope);
-                }
-            }
-        }
+        };
     }
 }

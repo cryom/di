@@ -1,94 +1,64 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: albertsultanov
+ * Date: 24.02.17
+ * Time: 0:13
+ */
+
 namespace vivace\di;
 
-use vivace\di\error\RecursiveDependency;
-use vivace\di\error\Undefined;
-use vivace\di\type\Scope;
+use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use vivace\di\exception\ImportFailure;
+use vivace\di\exception\NotFound;
 
-/**
- * Class Composite
- * @package vivace\di
- */
-class Composite implements type\Composite
+class Composite implements ContainerInterface, Scope
 {
 
-    /** @var Bundle[] */
-    private $scopes;
-    /** @var Bundle[][] */
-    private static $stack = [];
-    /**
-     * Composite constructor.
-     * @param Scope[] ...$scopes
-     */
-    public function __construct(Scope ...$scopes)
+    /** @var Scope[] */
+    private $containers;
+
+    public function __construct(ContainerInterface ...$containers)
     {
-        $this->scopes = $scopes;
+        $this->containers = $containers;
     }
 
-    /**
-     * @param string $id
-     * @return mixed
-     * @throws RecursiveDependency
-     * @throws Undefined
-     */
+    /** @inheritdoc */
     public function import(string $id)
     {
-        $factory = $this->getProducer($id);
-        return $factory($this);
-    }
-
-    /** @inheritdoc */
-    public function getProducer(string $id): \Closure
-    {
-        foreach ($this->scopes as $key => $scope) {
-            if (isset(self::$stack[$id]) && in_array($scope, self::$stack[$id])) {
-                continue;
-            }
+        foreach ($this->containers as $scope) {
             try {
-                $producer = $scope->getProducer($id);
-            } catch (Undefined $e) {
+                $factory = $scope->get($id);
+                return call_user_func($factory, $this);
+            } catch (NotFound $e) {
                 continue;
             }
-            if (!$scope instanceof self) {
-                $producer = function (Scope $main) use ($scope, $producer, $id) {
-                    self::$stack[$id][] = $scope;
-                    $count = count(self::$stack[$id]);
-                    $offset = $count - 1;
-                    $result = call_user_func($producer, $main);
-                    unset(self::$stack[$id][$offset]);
-                    if ($count == 1) {
-                        unset(self::$stack[$id]);
-                    }
-                    return $result;
-                };
-            }
-            return $producer;
         }
-        throw new Undefined("Undefined index $id");
-    }
-
-    /**
-     * @param callable $producer
-     * @return callable
-     */
-    public function bindTo(callable $producer): callable
-    {
-        return function (Scope $scope) use ($producer) {
-            return call_user_func($producer, new self($scope, $this));
-        };
+        throw new ImportFailure($e->getMessage(), 0, $e);
     }
 
     /** @inheritdoc */
-    public function append(Scope $scope): type\Composite
+    public function get($id)
     {
-        $this->scopes[] = $scope;
-        return $this;
+        foreach ($this->containers as $scope) {
+            try {
+                return $scope->get($id);
+            } catch (NotFoundExceptionInterface $e) {
+                continue;
+            }
+        }
+        throw $e;
     }
 
     /** @inheritdoc */
-    public function prepend(Scope $scope): type\Composite
+    public function has($id)
     {
-        array_unshift($this->scopes, $scope);
-        return $this;
+        foreach ($this->containers as $scope) {
+            if ($scope->has($id)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
