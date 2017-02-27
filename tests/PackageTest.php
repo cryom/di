@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\NotFoundExceptionInterface;
 use vivace\di\Container;
 use vivace\di\ContainerProxy;
-use vivace\di\exception\ImportFailure;
+use vivace\di\ImportFailureError;
 use vivace\di\Package;
 use vivace\di\Scope;
 
@@ -71,7 +71,7 @@ class PackageTest extends TestCase
 
     public function testImportException()
     {
-        $this->expectException(ImportFailure::class);
+        $this->expectException(ImportFailureError::class);
         $package = $this->makePackage(['foo' => 'foo']);
         $package->import('undefined');
         $package = $this->makePackage(['foo' => 'foo'], $this->makePackage(['ddd' => 'ddd']));
@@ -131,7 +131,7 @@ class PackageTest extends TestCase
 
     public function testImportThroughUse()
     {
-        $this->expectException(ImportFailure::class);
+        $this->expectException(ImportFailureError::class);
 
         $package = $this->makePackage([
             'bar' => 'bar',
@@ -207,7 +207,7 @@ class PackageTest extends TestCase
 
     public function testImportWithInsteadOf()
     {
-        $this->expectException(ImportFailure::class);
+        $this->expectException(ImportFailureError::class);
         $package = $this->makePackage(
             [
                 'foo' => 'foo',

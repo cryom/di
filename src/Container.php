@@ -10,7 +10,6 @@ namespace vivace\di;
 
 
 use Psr\Container\ContainerInterface;
-use vivace\di\exception;
 
 abstract class Container implements ContainerInterface
 {
@@ -20,7 +19,7 @@ abstract class Container implements ContainerInterface
     public function get($id): callable
     {
         if (!isset($this->factories[$id])) {
-            throw new exception\NotFound("$id not defined");
+            throw new NotFoundError("$id not defined");
         }
         return $this->factories[$id];
     }
@@ -43,7 +42,7 @@ abstract class Container implements ContainerInterface
             {
                 foreach ($factories as $id => $factory) {
                     if (!is_callable($factory)) {
-                        throw new exception\BadDefinition("Factory $id must be callable.");
+                        throw new BadDefinitionError("Factory $id must be callable.");
                     }
                     $this->factories[$id] = $factory;
                 }

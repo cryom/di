@@ -3,9 +3,6 @@ namespace vivace\di;
 
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use vivace\di\exception\BadDefinition;
-use vivace\di\exception\ImportFailure;
-use vivace\di\exception\NotFound;
 
 /**
  * Class Scope
@@ -21,7 +18,7 @@ abstract class Package extends Container implements Scope
      * @param ContainerInterface $container
      * @return Proxiable
      */
-    final protected function use (ContainerInterface $container): Proxiable
+    final protected function use(ContainerInterface $container): Proxiable
     {
         if (!$container instanceof Proxiable) {
             $container = new ContainerProxy($container);
@@ -35,7 +32,7 @@ abstract class Package extends Container implements Scope
         $stackable = $this;
         if (parent::has($id) && (!isset($this->stack[$id]) || !in_array($stackable, $this->stack[$id]))) {
             $factory = parent::get($id);
-        } elseif ($this->inherited) {
+        } elseif (!empty($this->inherited)) {
             foreach ($this->inherited as $inheritor) {
                 try {
                     if (isset($this->stack[$id]) && in_array($inheritor, $this->stack[$id])) {
@@ -49,7 +46,7 @@ abstract class Package extends Container implements Scope
             }
         }
         if (!isset($factory)) {
-            throw new NotFound("Factory '$id' is not exported.");
+            throw new NotFoundError("Factory '$id' is not exported.");
         }
         return function (Scope $scope) use ($id, $stackable, $factory) {
             $this->stack[$id][] = $stackable;
@@ -79,7 +76,7 @@ abstract class Package extends Container implements Scope
     final protected function export(string $id, callable $factory): void
     {
         if (isset($this->factories[$id])) {
-            throw new BadDefinition("$id factory has exported.");
+            throw new BadDefinitionError("$id factory has exported.");
         }
         $this->factories[$id] = $factory;
     }
@@ -89,7 +86,7 @@ abstract class Package extends Container implements Scope
         try {
             $factory = $this->get($id);
         } catch (NotFoundExceptionInterface $e) {
-            throw new ImportFailure($e->getMessage(), 0, $e);
+            throw new ImportFailureError($e->getMessage(), 0, $e);
         }
 
         return call_user_func($factory, $this);

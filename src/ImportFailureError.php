@@ -6,10 +6,10 @@
  * Time: 18:18
  */
 
-namespace vivace\di\exception;
+namespace vivace\di;
 
 
-class ImportFailure extends \Exception
+class ImportFailureError extends \Exception
 {
 
 }

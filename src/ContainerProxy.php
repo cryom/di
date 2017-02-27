@@ -27,7 +27,7 @@ class ContainerProxy extends Container implements Proxiable
     }
 
     /** @inheritdoc */
-    public function as (string $sourceId, string $alias): Proxiable
+    public function as(string $sourceId, string $alias): Proxiable
     {
         $this->factories[$alias] = $this->get($sourceId);
         return $this;
@@ -49,7 +49,7 @@ class ContainerProxy extends Container implements Proxiable
         } catch (NotFoundExceptionInterface $e) {
             $factory = $this->container->get($id);
         }
-        if (!$this->primary && !isset($this->bounds[$id])) {
+        if (empty($this->primary) && !isset($this->bounds[$id])) {
             return $factory;
         }
         return function (Scope $scope) use ($factory, $id) {

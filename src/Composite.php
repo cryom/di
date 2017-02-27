@@ -10,13 +10,13 @@ namespace vivace\di;
 
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use vivace\di\exception\ImportFailure;
-use vivace\di\exception\NotFound;
+use vivace\di\ImportFailureError;
+use vivace\di\NotFoundError;
 
 class Composite implements ContainerInterface, Scope
 {
 
-    /** @var Scope[] */
+    /** @var ContainerInterface[] */
     private $containers;
 
     public function __construct(ContainerInterface ...$containers)
@@ -30,12 +30,16 @@ class Composite implements ContainerInterface, Scope
         foreach ($this->containers as $scope) {
             try {
                 $factory = $scope->get($id);
-                return call_user_func($factory, $this);
-            } catch (NotFound $e) {
+                if (is_callable($factory)) {
+                    return call_user_func($factory, $this);
+                } else {
+                    return $factory;
+                }
+            } catch (NotFoundError $e) {
                 continue;
             }
         }
-        throw new ImportFailure($e->getMessage(), 0, $e);
+        throw new ImportFailureError($e->getMessage(), 0, $e);
     }
 
     /** @inheritdoc */

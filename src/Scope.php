@@ -1,18 +1,19 @@
 <?php
 namespace vivace\di;
 
-use vivace\di\exception\ImportFailure;
+use Psr\Container\ContainerInterface;
+use vivace\di\ImportFailureError;
 
 /**
  * Interface Scope
  * @package vivace\di\type
  */
-interface Scope
+interface Scope extends ContainerInterface
 {
     /**
      * @param string $id
      * @return mixed
-     * @throws ImportFailure
+     * @throws ImportFailureError
      */
     public function import(string $id);
 }
