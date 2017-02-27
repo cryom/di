@@ -13,6 +13,7 @@ Inversion of Control container with support for advanced inheritance of the cont
 
 ## Code Example
 
+### Base
 vendor/name/PackageA.php
 ```php
 class PackageA extends \vivace\di\Package
@@ -101,9 +102,50 @@ $instanceB = $scope->import(vendorA\tool\ClassB::class);
 $instanceA = $scope->import(vendorA\tool\ClassA::class);
 $cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
 ```
+### With Autowire
+model/User.php
+```php
+namespace model;
+
+class User {
+    public $pdo;
+    public function __construct(\PDO $pdo){
+        $this->pdo = $pdo;
+    }
+}
+```
+
+app/Package.php
+```php
+namespace app;
+
+class Package extends vivace\di\Package {
+    public function __construct(){
+        $autowire = new Autowire();
+        $autowire->get(\PDO::class)
+                 ->asService()
+                 ->setArguments(['dsn' => 'psql://yourdsn'])
+                 ->setUp(function(\PDO $pdo, vivace\di\Scope $scope){
+                    $pdo->exec("set names utf8");
+                 });
+                 
+        $this->use(new Autowire())
+    }
+} 
+```
+web/index.php
+```php
+    require dirname(__DIR__) . '/vendor/autoload.php';
+    $package = new app\Package();
+    
+    $user = $package->import(model\User::class);
+    
+    var_dump($user->pdo === $package->import(\PDO::class));//true
+    var_dump($user === $package->import(model\User::class));//false
+```
 ## Motivation
 
-It took the opportunity to create a portable and extensible Inversion of Control containers
+The main goal is to create a portable containers.
 
 ## Installation
 ```bash
@@ -116,7 +158,13 @@ composer require vivace/di
 
 ## Tests
 
-...
+via docker-compose
+
+docker-compose run --rm phpunit --testsuite=unit
+
+via php
+
+ phpunit --testsuite=unit
 
 ## Contributors
 
@@ -124,4 +172,10 @@ composer require vivace/di
 
 ## License
 
-...
+Copyright (c) 2017 Albert Sultanov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
