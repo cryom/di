@@ -6,6 +6,8 @@ engines:
       - php
   phpcodesniffer:
     enabled: true
+    exclude_fingerprints:
+    - b30fc24a0349d52e305d0b8a6eeb8ec8
   phpmd:
     enabled: true
 ratings:
