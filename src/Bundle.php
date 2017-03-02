@@ -1,30 +1,25 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 28.02.17
- * Time: 1:47
- */
-
 namespace vivace\di;
-
 
 use Psr\Container\ContainerInterface;
 use vivace\di\Container\Proxy;
 use vivace\di\Scope\Branch;
 use vivace\di\Scope\Node;
 
-abstract class Bundle
+trait Bundle
 {
+    const ENTRY = 'main';
+    
     /** @var callable[] */
     private $factories = [];
     /** @var ContainerInterface */
     private $use = [];
 
-    private $entry = 'main';
-
     final protected function export(string $id, callable $factory)
     {
+        if (isset($this->factories[$id])) {
+            throw new \vivace\di\BadDefinitionError("Factory $id has been defined");
+        }
         $this->factories[$id] = $factory;
     }
 
@@ -36,7 +31,7 @@ abstract class Bundle
         return $this->use[] = $container;
     }
 
-    private function getScope(): Scope
+    public function getScope(): Scope
     {
         $self = new Branch($this->factories);
         if (empty($this->use)) {
