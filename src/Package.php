@@ -50,7 +50,7 @@ abstract class Package extends Container implements Scope
         }
         return function (Scope $scope) use ($id, $stackable, $factory) {
             $this->stack[$id][] = $stackable;
-            $result = call_user_func($factory, $scope);
+            $result = is_callable($factory) ? call_user_func($factory, $scope) : $factory;
             array_pop($this->stack[$id]);
             if (!$this->stack[$id]) {
                 unset($this->stack[$id]);
@@ -89,7 +89,7 @@ abstract class Package extends Container implements Scope
             throw new ImportFailureError($e->getMessage(), 0, $e);
         }
 
-        return call_user_func($factory, $this);
+        return is_callable($factory) ? call_user_func($factory, $this) : $factory;
     }
 
     /**

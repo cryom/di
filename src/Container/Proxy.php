@@ -6,30 +6,33 @@
  * Time: 0:05
  */
 
-namespace vivace\di;
+namespace vivace\di\Container;
 
 
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use vivace\di\Proxiable;
+use vivace\di\Scope;
 
-class ContainerProxy extends Container implements Proxiable
+class Proxy extends Base implements Proxiable
 {
     /** @var  ContainerInterface */
     private $container;
     /** @var callable[] */
     private $primary = [];
-    /** @var Container[] */
+    /** @var callable[][] */
     private $bounds = [];
 
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, array $items = [])
     {
+        parent::__construct($items);
         $this->container = $container;
     }
 
     /** @inheritdoc */
-    public function as(string $sourceId, string $alias): Proxiable
+    public function as (string $sourceId, string $alias): Proxiable
     {
-        $this->factories[$alias] = $this->get($sourceId);
+        $this->items[$alias] = $this->get($sourceId);
         return $this;
     }
 
@@ -42,25 +45,25 @@ class ContainerProxy extends Container implements Proxiable
         return $this;
     }
 
-    public function get($id):callable
+    public function get($id): callable
     {
         try {
             $factory = parent::get($id);
         } catch (NotFoundExceptionInterface $e) {
-            $factory = static::prepareFactory($this->container->get($id));
+            $factory = \vivace\di\wrap($this->container->get($id));
         }
         if (empty($this->primary) && !isset($this->bounds[$id])) {
             return $factory;
         }
         return function (Scope $scope) use ($factory, $id) {
             $primaryFactories = array_merge($this->bounds[$id] ?? [], $this->primary);
-            $scope = new Composite(Container::new($primaryFactories), $scope);
+            $scope = new Scope\Node(new Base($primaryFactories), $scope);
 
             return call_user_func($factory, $scope);
         };
     }
 
-    public function has($id):bool
+    public function has($id): bool
     {
         return parent::has($id) || $this->container->has($id);
     }
@@ -74,7 +77,7 @@ class ContainerProxy extends Container implements Proxiable
     {
         $this->primary[$targetId] = function (Scope $scope) use ($targetId) {
             $factory = $this->container->get($targetId);
-            return call_user_func($factory, $scope);
+            return call_user_func(\vivace\di\wrap($factory), $scope);
         };
         return $this;
     }

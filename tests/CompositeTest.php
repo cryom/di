@@ -10,6 +10,7 @@ namespace vivace\di\tests;
 
 
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use vivace\di\Composite;
 use vivace\di\Container;
@@ -53,5 +54,25 @@ class CompositeTest extends TestCase
         $this->assertEquals($aF, $composite->get('a'));
         $this->assertEquals($bF, $composite->get('b'));
         $composite->get('c');
+    }
+
+    public function testImportScalarValue()
+    {
+        $container = new class implements ContainerInterface
+        {
+            public function get($id)
+            {
+                return 123;
+            }
+
+            public function has($id)
+            {
+                return true;
+            }
+        };
+
+        $composite = new Composite($container);
+
+        $this->assertEquals(123, $composite->import('id'));
     }
 }

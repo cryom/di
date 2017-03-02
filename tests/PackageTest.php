@@ -10,6 +10,7 @@ namespace vivace\di\tests;
 
 
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use vivace\di\Container;
 use vivace\di\ContainerProxy;
@@ -294,5 +295,25 @@ class PackageTest extends TestCase
 
         $this->assertEquals('foobar', $scope->import('foo'));
         $this->assertEquals('bar2', $scope->import('bar2'));
+    }
+
+
+    public function testUseContainerWithoutFactory()
+    {
+        $container = new class implements ContainerInterface {
+
+            public function get($id)
+            {
+                return 123;
+            }
+            public function has($id)
+            {
+                return true;
+            }
+        };
+
+        $pkg = Package::new([], new ContainerProxy($container));
+
+        $this->assertEquals(123, $pkg->import('id'));
     }
 }

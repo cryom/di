@@ -11,20 +11,31 @@ namespace vivace\di;
 
 use Psr\Container\ContainerInterface;
 
-abstract class Container implements ContainerInterface
+class Container implements ContainerInterface
 {
     protected $factories = [];
 
-    /** @inheritdoc */
+    public function __construct(array $factories = [])
+    {
+        $this->factories = $factories;
+    }
+
+    /**
+     * @inheritdoc
+     * @return callable
+     */
     public function get($id): callable
     {
         if (!isset($this->factories[$id])) {
             throw new NotFoundError("$id not defined");
         }
-        return $this->factories[$id];
+        return wrap($this->factories[$id]);
     }
 
-    /** @inheritdoc */
+    /**
+     * @inheritdoc
+     * @return bool
+     */
     public function has($id): bool
     {
         return isset($this->factories[$id]);
@@ -41,12 +52,19 @@ abstract class Container implements ContainerInterface
             public function __construct($factories)
             {
                 foreach ($factories as $id => $factory) {
-                    if (!is_callable($factory)) {
-                        throw new BadDefinitionError("Factory $id must be callable.");
-                    }
                     $this->factories[$id] = $factory;
                 }
             }
         };
+    }
+
+    protected static function prepareFactory($value): callable
+    {
+        if (!is_callable($value)) {
+            return function () use ($value) {
+                return $value;
+            };
+        }
+        return $value;
     }
 }
