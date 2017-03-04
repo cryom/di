@@ -14,7 +14,7 @@ Inversion of Control container with support for advanced inheritance of the cont
 ## Code Example
 
 ### Base
-vendor/name/PackageA.php
+vendor/name/PackageA.php - from a third party developer
 ```php
 class PackageA extends vivace\di\Scope\Package
 {
@@ -36,7 +36,7 @@ class PackageA extends vivace\di\Scope\Package
 }
 ```
 
-libs/RedisCache.php
+libs/RedisCache.php - from a third party developer
 ```php
 class RedisCache extends BaseCache
 {
@@ -59,7 +59,7 @@ class RedisCache extends BaseCache
 }
 ```
 
-app/Main.php
+app/Main.php - your application package
 ```php
 class Main extends \vivace\di\Scope\Package
 {
@@ -80,7 +80,10 @@ class Main extends \vivace\di\Scope\Package
         $this->export('db.second', function () {
             return new PDO('<main_db_dsn>');
         });
-
+        /*
+        'RedisCache' not implement 'ContainerInterface', only used trait of 'vivace\di\Package', which has method 'getScope'. 
+        Result of method 'getScope' is object instantiated of 'ContainerInterface', which can be passed in 'use' method
+        */
         $this->use((new RedisCache('app_prefix'))->getScope())
             ->as(\Psr\Cache\CacheItemPoolInterface::class, 'cache.redis');
 
@@ -104,7 +107,67 @@ $instanceB = $scope->import(vendorA\tool\ClassB::class);
 $instanceA = $scope->import(vendorA\tool\ClassA::class);
 $cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
 ```
-### With Autowire
+### Use Factory\Instance
+```php
+class Session {
+    public function __construct($prefix){
+    }
+}
+```
+```php
+class Orm {
+    private $pdo;
+    private $session;
+    
+    public function __construct(PDO $pdo, Session $session){
+        $this->pdo = $pdo;
+        $this->session = $session;
+    }
+    
+    public function getPdo(): \PDO {
+        return $this->pdo;
+    }
+    
+    public function getSession(): Session {
+        return $this->session;
+    }
+}
+```
+```php
+class Package extends vivace\di\Scope\Package {
+    public function __construct(){
+        $this->export(vivace\di\Resolver::class, vivace\di\Resolver::getFactory());
+        $this->export(\PDO::class, $this->getPDOFactory());
+        $this->export(Session::class, new Factory(Session::class, ['prefix' => 'your_session_prefix'], true));
+        $this->export(Orm::class, new Factory(Orm::class));
+    }
+    
+    
+    private function getPDOFactory(){
+        $factory = new vivace\di\Factory\Instance(PDO::class);
+        //parameters for constructor
+        $factory->setParameters(['dsn' => '<your_connection_dsn>']);
+        //singletone
+        $factory->asService();
+        //after create call follow function
+        $factory->setUp(function(\PDO $pdo, vivace\di\Scope $scope){
+                                    $pdo->exec("set names utf8");
+                                 });
+                                 
+        return $factory;
+    }
+}
+```
+
+index.php
+```php
+$pkg = new Package();
+$orm = $pkg->import(Orm::class);
+var_dump($orm instanceof Orm);//true
+var_dump($orm->getPDO() === $orm->getPDO())//true
+var_dump($orm->getSession() instanceof Session);//true
+```
+### Use Autowire
 model/User.php
 ```php
 namespace model;
@@ -145,6 +208,7 @@ web/index.php
     var_dump($user->pdo === $package->import(\PDO::class));//true
     var_dump($user === $package->import(model\User::class));//false
 ```
+
 ## Motivation
 
 The main goal is to create a portable containers.

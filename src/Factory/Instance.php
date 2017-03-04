@@ -36,16 +36,18 @@ class Instance implements Factory
     /**
      * Factory constructor.
      * @param string $className
-     * @param array $arguments
+     * @param array $parameters
+     * @param bool $asService
      * @throws BadDefinitionError
      */
-    public function __construct(string $className, array $arguments = [])
+    public function __construct(string $className, array $parameters = [], $asService = false)
     {
         if (!class_exists($className)) {
             throw new BadDefinitionError("Class $className not found");
         }
         $this->className = $className;
-        $this->setParameters($arguments);
+        $this->setParameters($parameters);
+        $this->asService($asService);
     }
 
     /**

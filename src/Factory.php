@@ -25,8 +25,6 @@ interface Factory
      */
     public function setUp(callable $function): Factory;
 
-    public function produce(Scope $scope);
-
     /**
      * @param Scope $scope
      * @return mixed

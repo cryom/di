@@ -21,7 +21,6 @@ namespace vivace\di {
 }
 
 namespace vivace\di\resolve {
-
     use vivace\di\ImportFailureError;
     use vivace\di\NotResolvedError;
     use vivace\di\Scope;
