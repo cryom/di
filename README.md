@@ -136,9 +136,13 @@ class Orm {
 ```php
 class Package extends vivace\di\Scope\Package {
     public function __construct(){
+        //Factory\Instance require object of Resolver for dependencies values resolving 
         $this->export(vivace\di\Resolver::class, vivace\di\Resolver::getFactory());
+        
         $this->export(\PDO::class, $this->getPDOFactory());
+        
         $this->export(Session::class, new Factory(Session::class, ['prefix' => 'your_session_prefix'], true));
+        
         $this->export(Orm::class, new Factory(Orm::class));
     }
     

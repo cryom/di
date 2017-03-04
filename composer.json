@@ -6,6 +6,7 @@
     "dependency",
     "di"
   ],
+  "version": "v1.0",
   "type": "library",
   "require-dev": {
     "codeclimate/php-test-reporter": "^0.4.2",
