@@ -31,7 +31,7 @@ interface Proxiable extends ContainerInterface
      * @param string $targetId
      * @return mixed
      */
-    public function final(string $targetId):Proxiable;
+    public function primary(string $targetId):Proxiable;
 
     /**
      * Redirection imported factories for concrete factory

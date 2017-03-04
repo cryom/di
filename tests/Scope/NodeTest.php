@@ -21,7 +21,7 @@ class NodeTest extends TestCase
 {
     public function testHas()
     {
-        $node = new Node(new Branch(['a' => 'a']), new Container(['b' => 'b']));
+        $node = new Node(new Branch(['a' => 'a']), new Container\Base(['b' => 'b']));
 
         $this->assertTrue($node->has('a'));
         $this->assertTrue($node->has('b'));
@@ -30,7 +30,7 @@ class NodeTest extends TestCase
 
     public function testGet()
     {
-        $node = new Node(new Branch(['a' => 'a']), new Container(['b' => 'b']));
+        $node = new Node(new Branch(['a' => 'a']), new Container\Base(['b' => 'b']));
         $this->assertInternalType('callable', $node->get('a'));
         $this->assertInternalType('callable', $node->get('b'));
         $this->expectException(NotFoundExceptionInterface::class);
@@ -52,7 +52,7 @@ class NodeTest extends TestCase
                     return $scope->import('f');
                 },
             ]),
-            new Container([
+            new Container\Base([
                 'b' => 'b',
                 'd' => function (Scope $scope) {
                     return 'd' . $scope->import('c');

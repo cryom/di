@@ -13,6 +13,7 @@ namespace vivace\di;
  * Class Resolver
  * @package vivace\di
  */
+
 /**
  * Class Resolver
  * @package vivace\di
@@ -73,43 +74,38 @@ class Resolver
         return $this->metaData[$target];
     }
 
+    protected function getResolvers(): array
+    {
+        return [
+            '\vivace\di\resolve\byPosition',
+            '\vivace\di\resolve\byName',
+            '\vivace\di\resolve\byTypeClass',
+            '\vivace\di\resolve\byDefaultValue',
+        ];
+    }
+
+
     /**
      * @param string $className
-     * @param array $arguments
+     * @param array $parameters
      * @return array
      * @throws NotResolvedError
      */
-    public function resolve(string $className, array $arguments = []): array
+    public function resolve(string $className, array $parameters = []): array
     {
         $meta = $this->meta($className);
         $argumentsValues = [];
         foreach ($meta as $item) {
-            [$pos, $name, $typeClassName] = $item;
-            if (isset($arguments[$pos])) {
-                $argumentsValues[] = $arguments[$pos];
-                continue;
-            } elseif (isset($arguments[$name])) {
-                $argumentsValues[] = $arguments[$name];
-                continue;
-            } elseif (!empty($typeClassName)) {
-                if (isset($arguments[$typeClassName])) {
-                    $argumentsValues[] = $arguments[$typeClassName];
+            foreach ($this->getResolvers() as $resolver) {
+                try {
+                    $argumentsValues[] = call_user_func($resolver, $item, $parameters, $this->scope);
+                    continue(2);
+                } catch (NotResolvedError $_) {
                     continue;
-                } else {
-                    try {
-                        $argumentsValues[] = $this->scope->import($typeClassName);
-                        continue;
-                    } catch (ImportFailureError $e) {
-                        //pass
-                    }
                 }
             }
-            if (array_key_exists(3, $item)) {
-                $argumentsValues[] = $item[3];
-            } else {
-                throw new NotResolvedError("Argument $className::$name#$pos required.");
-            }
-
+            [$pos, $name] = $item;
+            throw new NotResolvedError("Argument $className::$name#$pos required.");
         }
         return $argumentsValues;
     }

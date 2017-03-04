@@ -16,7 +16,7 @@ Inversion of Control container with support for advanced inheritance of the cont
 ### Base
 vendor/name/PackageA.php
 ```php
-class PackageA extends \vivace\di\Package
+class PackageA extends vivace\di\Scope\Package
 {
     public function __construct()
     {
@@ -38,8 +38,10 @@ class PackageA extends \vivace\di\Package
 
 libs/RedisCache.php
 ```php
-class RedisCache extends \vivace\di\Package
+class RedisCache extends BaseCache
 {
+    use \vivace\di\Package;
+    
     public function __construct(string $prefix = null)
     {
         $this->export(\Psr\Cache\CacheItemPoolInterface::class, function (\vivace\di\Scope $scope) use ($prefix) {
@@ -59,7 +61,7 @@ class RedisCache extends \vivace\di\Package
 
 app/Main.php
 ```php
-class Main extends \vivace\di\Package
+class Main extends \vivace\di\Scope\Package
 {
     public function __construct()
     {
@@ -79,7 +81,7 @@ class Main extends \vivace\di\Package
             return new PDO('<main_db_dsn>');
         });
 
-        $this->use(new RedisCache('app_prefix'))
+        $this->use((new RedisCache('app_prefix'))->getScope())
             ->as(\Psr\Cache\CacheItemPoolInterface::class, 'cache.redis');
 
         $this->use(new PackageA())
@@ -119,12 +121,12 @@ app/Package.php
 ```php
 namespace app;
 
-class Package extends vivace\di\Package {
+class Package extends vivace\di\Scope\Package {
     public function __construct(){
         $autowire = new Autowire();
         $autowire->get(\PDO::class)
                  ->asService()
-                 ->setArguments(['dsn' => 'psql://yourdsn'])
+                 ->setParameters(['dsn' => 'psql://yourdsn'])
                  ->setUp(function(\PDO $pdo, vivace\di\Scope $scope){
                     $pdo->exec("set names utf8");
                  });

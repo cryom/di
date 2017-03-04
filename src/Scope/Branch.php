@@ -15,7 +15,7 @@ use vivace\di\NotFoundError;
 use vivace\di\RecursiveImportError;
 use vivace\di\Scope;
 
-class Branch extends Container implements Scope
+class Branch extends Container\Base implements Scope
 {
     private $stack = [];
 

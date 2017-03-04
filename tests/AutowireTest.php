@@ -10,9 +10,8 @@ namespace vivace\di\tests;
 
 
 use PHPUnit\Framework\TestCase;
-use vivace\di\Autowire;
-use vivace\di\ContainerProxy;
-use vivace\di\Package;
+use vivace\di\Container\Autowire;
+use vivace\di\Container\Proxy;
 use vivace\di\Scope;
 use vivace\di\tests\fixture\Bar;
 use vivace\di\tests\fixture\Foo;
@@ -33,8 +32,8 @@ class AutowireTest extends TestCase
 
     public function testImport()
     {
-        $proxy = new ContainerProxy(new Autowire());
-        $package = Package::new([], $proxy);
+        $proxy = new Proxy(new Autowire());
+        $package = new Scope\Node($proxy);
         $this->assertInstanceOf(Bar::class, $package->import(Bar::class));
     }
 
@@ -48,7 +47,7 @@ class AutowireTest extends TestCase
         $this->assertSame($autowire->get(Bar::class), $autowire->get(Bar::class));
 
         $autowire = new Autowire();
-        $autowire->get(Bar::class)->setArguments([]);
+        $autowire->get(Bar::class)->setParameters([]);
         $this->assertSame($autowire->get(Bar::class), $autowire->get(Bar::class));
 
         $autowire = new Autowire();
@@ -60,13 +59,13 @@ class AutowireTest extends TestCase
 
     public function testRedefineImport()
     {
-        $autowire = new ContainerProxy(new Autowire());
-        $children = new ContainerProxy(Package::new([
+        $autowire = new Proxy(new Autowire());
+        $children = new Proxy(new Scope\Branch([
             Foo::class => function (Scope $scope) {
                 return new Foo('abc');
             },
         ]));
-        $package = Package::new([], $autowire, $children);
+        $package = new Scope\Node($autowire, $children);
         $this->assertEquals('abc',$package->import(Foo::class)->val);
     }
 }

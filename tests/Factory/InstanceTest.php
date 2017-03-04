@@ -6,44 +6,44 @@
  * Time: 3:03
  */
 
-namespace vivace\di\tests;
+namespace vivace\di\tests\Factory;
 
 
 use PHPUnit\Framework\TestCase;
 use vivace\di\BadDefinitionError;
-use vivace\di\Factory;
+use vivace\di\Factory\Instance;
 use vivace\di\ImportFailureError;
-use vivace\di\Package;
 use vivace\di\Resolver;
+use vivace\di\Scope\Branch;
 use vivace\di\tests\fixture\Bar;
 use vivace\di\tests\fixture\Foo;
 
-class FactoryTest extends TestCase
+class InstanceTest extends TestCase
 {
     public function setUp()
     {
-        require_once __DIR__ . '/fixture/classes.php';
+        require_once __DIR__ . '/../fixture/classes.php';
     }
 
     public function testFactoryConstruct()
     {
         $this->expectException(BadDefinitionError::class);
-        new Factory('123');
+        new Instance('123');
     }
 
     public function testFactoryArguments()
     {
-        $scope = Package::new([Resolver::class => Resolver::getFactory()]);
-        $factory = new Factory(Foo::class);
-        $foo = $factory->setArguments(['val' => 'value'])->produce($scope);
+        $scope = new Branch([Resolver::class => Resolver::getFactory()]);
+        $factory = new Instance(Foo::class);
+        $foo = $factory->setParameters(['val' => 'value'])->produce($scope);
         $this->assertEquals('value', $foo->val);
     }
 
 
     public function testFactoryService()
     {
-        $scope = Package::new([Resolver::class => Resolver::getFactory()]);
-        $factory = new Factory(Foo::class);
+        $scope = new Branch([Resolver::class => Resolver::getFactory()]);
+        $factory = new Instance(Foo::class);
         $this->assertNotSame($factory->produce($scope), $factory->produce($scope));
         $factory->asService();
         $this->assertSame($factory->produce($scope), $factory->produce($scope));
@@ -52,9 +52,9 @@ class FactoryTest extends TestCase
 
     public function testFactoryApply()
     {
-        $scope = Package::new([Resolver::class => Resolver::getFactory()]);
-        $factory = new Factory(Foo::class);
-        $factory->setArguments(['val' => 123]);
+        $scope = new Branch([Resolver::class => Resolver::getFactory()]);
+        $factory = new Instance(Foo::class);
+        $factory->setParameters(['val' => 123]);
         $factory->setUp(function (Foo $foo) {
             $foo->val = 'value';
         });
@@ -65,7 +65,7 @@ class FactoryTest extends TestCase
     public function testNotResolved()
     {
         $this->expectException(ImportFailureError::class);
-        $factory = new Factory(Bar::class);
-        $factory->produce(Package::new([Resolver::class => Resolver::getFactory()]));
+        $factory = new Instance(Bar::class);
+        $factory->produce(new Branch([Resolver::class => Resolver::getFactory()]));
     }
 }

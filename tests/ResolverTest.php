@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use vivace\di\Resolver;
 use vivace\di\NotResolvedError;
 use vivace\di\Package;
+use vivace\di\Scope\Branch;
 use vivace\di\tests\fixture\Bar;
 use vivace\di\tests\fixture\Emp;
 use vivace\di\tests\fixture\Foo;
@@ -28,7 +29,7 @@ class ResolverTest extends TestCase
     public function testResolve()
     {
 
-        $resolver = new Resolver(Package::new([]));
+        $resolver = new Resolver(new Branch([]));
 
         $this->assertEquals([null], $resolver->resolve(Foo::class));
         $this->assertEquals([], $resolver->resolve(Emp::class));
@@ -38,7 +39,7 @@ class ResolverTest extends TestCase
         $this->assertEquals([$foo, 'value'], $resolver->resolve(Bar::class, ['val1' => 'value', 'val' => $foo]));
         $this->assertEquals([$foo, 'value'], $resolver->resolve(Bar::class, ['val1' => 'value', Foo::class => $foo]));
 
-        $resolver = new Resolver(Package::new([Foo::class => function()use($foo){
+        $resolver = new Resolver(new Branch([Foo::class => function()use($foo){
             return $foo;
         }]));
         $this->assertEquals([$foo, 'default_value'], $resolver(Bar::class));
@@ -48,7 +49,7 @@ class ResolverTest extends TestCase
         $this->assertEquals([$foo2, 'value'], $resolver->resolve(Bar::class, ['val1' => 'value', 0 => $foo2]));
 
         $this->expectException(NotResolvedError::class);
-        $resolver = new Resolver(Package::new([]));
+        $resolver = new Resolver(new Branch([]));
         $resolver->resolve(Bar::class);
     }
 

@@ -5,9 +5,7 @@
  * Date: 24.02.17
  * Time: 0:05
  */
-
 namespace vivace\di\Container;
-
 
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -40,6 +38,7 @@ class Proxy extends Base implements Proxiable
     public function insteadOf(string $sourceId, string $delegateId): Proxiable
     {
         $this->primary[$sourceId] = function (Scope $scope) use ($delegateId) {
+            $scope = new Scope\Node($scope, $this);
             return $scope->import($delegateId);
         };
         return $this;
@@ -73,7 +72,7 @@ class Proxy extends Base implements Proxiable
      * @param string $targetId
      * @return mixed
      */
-    public function final(string $targetId): Proxiable
+    public function primary(string $targetId): Proxiable
     {
         $this->primary[$targetId] = function (Scope $scope) use ($targetId) {
             $factory = $this->container->get($targetId);
