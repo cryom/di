@@ -168,8 +168,8 @@ index.php
 $pkg = new Package();
 $orm = $pkg->import(Orm::class);
 var_dump($orm instanceof Orm);//true
-var_dump($orm->getPDO() === $orm->getPDO())//true
-var_dump($orm->getSession() instanceof Session);//true
+var_dump($orm->getPDO() === $pkg->import(Orm::class)->getPDO()); //true
+var_dump($orm->getSession() instanceof Session); //true
 ```
 ### Use Autowire
 model/User.php
