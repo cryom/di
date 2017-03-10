@@ -75,4 +75,50 @@ class NodeTest extends TestCase
         $this->expectException(ImportFailureError::class);
         $node->import('zzz');
     }
+
+    public function testDeeperDive()
+    {
+        $node = new Node(
+            new Node(
+                new Branch([
+                    'a' => function(Scope $scope){
+                        return 'a1' . $scope->import('a') . $scope->import('b');
+                    }
+                ]),
+                new Node(
+                    new Branch([
+                        'a' => function(Scope $scope){
+                            return 'a' . $scope->import('a');
+                        }   
+                    ]),
+                    new Branch([
+                        'b' => function(Scope $scope){
+                            return 'b1' . $scope->import('b');
+                        }   
+                    ])
+                )                
+            ),
+            new Node(
+                new Branch([
+                    'a' => function(Scope $scope){
+                        return 'a2';
+                    }   
+                ]),
+                new Branch([
+                    'b' => function(Scope $scope){
+                        return 'b2' . $scope->import('a');
+                    }   
+                ]),
+                new Node(
+                    new Branch([
+                        'c' => function(Scope $scope){
+                            return 'c' . $scope->import('a');
+                        }
+                    ])
+                )
+            )
+        );
+
+        $this->assertEquals('ca1ab1b2a2', $node->import('c'));
+    }
 }
