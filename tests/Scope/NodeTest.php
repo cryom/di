@@ -82,18 +82,18 @@ class NodeTest extends TestCase
             new Node(
                 new Branch([
                     'a' => function(Scope $scope){
-                        return 'a1' . $scope->import('a') . $scope->import('b');
+                        return 'a1-' . $scope->import('a') . '-' . $scope->import('b');
                     }
                 ]),
                 new Node(
                     new Branch([
                         'a' => function(Scope $scope){
-                            return 'a' . $scope->import('a');
+                            return 'a-' . $scope->import('a');
                         }   
                     ]),
                     new Branch([
                         'b' => function(Scope $scope){
-                            return 'b1' . $scope->import('b');
+                            return 'b1-' . $scope->import('b');
                         }   
                     ])
                 )                
@@ -106,19 +106,19 @@ class NodeTest extends TestCase
                 ]),
                 new Branch([
                     'b' => function(Scope $scope){
-                        return 'b2' . $scope->import('a');
+                        return 'b2-' . $scope->import('a');
                     }   
                 ]),
                 new Node(
                     new Branch([
                         'c' => function(Scope $scope){
-                            return 'c' . $scope->import('a');
+                            return 'c-' . $scope->import('a');
                         }
                     ])
                 )
             )
         );
 
-        $this->assertEquals('ca1ab1b2a2', $node->import('c'));
+        $this->assertEquals('c-a1-a2-b1-b2-a2', $node->import('c'));
     }
 }
