@@ -9,6 +9,7 @@ namespace vivace\di\Container;
 
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use vivace\di\InvalidArgumentError;
 use vivace\di\Proxiable;
 use vivace\di\Scope;
 
@@ -84,15 +85,23 @@ class Proxy extends Base implements Proxiable
     /**
      * @param string $targetId
      * @param array $map
+     * Map, where key is factory id and value should be type of callable or string.
+     * If value is string, then will be import from scope
      * @return Proxiable
      */
     public function insteadFor(string $targetId, array $map): Proxiable
     {
         $factories = [];
-        foreach ($map as $id => $delegateId) {
-            $factories[$id] = function (Scope $scope) use ($delegateId) {
-                return $scope->import($delegateId);
-            };
+        foreach ($map as $id => $delegate) {
+            if (is_callable($delegate)) {
+                $factories[$id] = $delegate;
+            } elseif (is_string($delegate)) {
+                $factories[$id] = function (Scope $scope) use ($delegate) {
+                    return $scope->import($delegate);
+                };
+            } else {
+                throw new InvalidArgumentError("Invalid value type. Value should be a callable or string");
+            }
         }
         $this->bounds[$targetId] = $factories;
         return $this;

@@ -11,6 +11,7 @@ namespace vivace\di\tests\Container;
 
 use PHPUnit\Framework\TestCase;
 use vivace\di\Container;
+use vivace\di\InvalidArgumentError;
 use vivace\di\Scope;
 use vivace\di\Scope\Branch;
 
@@ -94,13 +95,38 @@ class ProxyTest extends TestCase
             'd' => function (Scope $scope) {
                 return $scope->import('a') . $scope->import('b');
             },
+            'e' => function (Scope $scope) {
+                return $scope->import('e1') . $scope->import('e2');
+            },
         ]));
         $proxy->insteadFor('d', [
             'a' => 'a1',
             'b' => 'b2',
         ]);
+        $proxy->insteadFor('e', [
+            'e1' => function () {
+                return 've1';
+            },
+            'e2' => function (Scope $scope) {
+                return $scope->import('d');
+            },
+        ]);
         $node = new Scope\Node($scope, $proxy);
         $this->assertEquals('ab', $node->import('c'));
         $this->assertEquals('a1b2', $node->import('d'));
+        $this->assertEquals('ve1a1b2', $node->import('e'));
+
+        $this->expectException(InvalidArgumentError::class);
+        $proxy->insteadFor('e', [
+            'e1' => null
+        ]);
+
+        $proxy->insteadFor('e', [
+            'e1' => 123
+        ]);
+
+        $proxy->insteadFor('e', [
+            'e1' => []
+        ]);
     }
 }
