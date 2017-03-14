@@ -10,6 +10,8 @@
 
 ## Synopsis
 Inversion of Control container with support for advanced inheritance of the container.
+Than it is similar to "bundles" from the framework ___symfony___.
+
 
 ## Code Example
 
@@ -171,7 +173,7 @@ var_dump($orm instanceof Orm);//true
 var_dump($orm->getPDO() === $pkg->import(Orm::class)->getPDO()); //true
 var_dump($orm->getSession() instanceof Session); //true
 ```
-### Use Autowire
+### Auto-resolution of constructor parameters (Autowiring)
 model/User.php
 ```php
 namespace model;
@@ -191,6 +193,7 @@ namespace app;
 class Package extends vivace\di\Scope\Package {
     public function __construct(){
         $autowire = new Autowire();
+        // Autowire allows configure strategy of factory for each class
         $autowire->get(\PDO::class)
                  ->asService()
                  ->setParameters(['dsn' => 'psql://yourdsn'])
@@ -206,7 +209,8 @@ web/index.php
 ```php
     require dirname(__DIR__) . '/vendor/autoload.php';
     $package = new app\Package();
-    
+    // We don't export factory for "model\User", but we can import instance of this class, 
+    // because used Autowire, which create factory independently, when we be import.
     $user = $package->import(model\User::class);
     
     var_dump($user->pdo === $package->import(\PDO::class));//true
@@ -215,7 +219,7 @@ web/index.php
 
 ## Motivation
 
-The main goal is to create a portable containers.
+The main goal is to create a portable containers for modular application.
 
 ## Installation
 ```bash
