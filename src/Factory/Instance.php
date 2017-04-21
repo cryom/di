@@ -17,7 +17,8 @@ use vivace\di\Scope;
 
 
 /**
- * Class Factory
+ * Factory for instantiate object with automated resolving of dependencies
+ * For resolving used instance of vivace\di\Resolver, which should be exported in your main scope
  * @package vivace\di
  */
 class Instance implements Factory
@@ -35,24 +36,37 @@ class Instance implements Factory
 
     /**
      * Factory constructor.
-     * @param string $className
-     * @param array $parameters
+     * @param string $className Target class name
+     * @param array $arguments Parameters for resolver
      * @param bool $asService
      * @throws BadDefinitionError
+     * @see Instance::setArguments
      */
-    public function __construct(string $className, array $parameters = [], $asService = false)
+    public function __construct(string $className, array $arguments = [], $asService = false)
     {
         if (!class_exists($className)) {
             throw new BadDefinitionError("Class $className not found");
         }
         $this->className = $className;
-        $this->setParameters($parameters);
+        $this->setArguments($arguments);
         $this->asService($asService);
     }
 
     /**
-     * @param bool $value
-     * @return Factory
+     * Set dependencies arguments for instantiate of target class
+     * @param array $arguments Associative array, where key can be name, type or position of argument.
+     * @return Factory|$this Instance of this object
+     */
+    public function setArguments(array $arguments): Factory
+    {
+        $this->arguments = $arguments;
+        return $this;
+    }
+
+    /**
+     * Make as a service. Instance will behave as a singleton pattern
+     * @param bool $value enable or disable
+     * @return Factory|$this Instance of target class
      */
     public function asService($value = true): Factory
     {
@@ -61,18 +75,9 @@ class Instance implements Factory
     }
 
     /**
-     * @param array $arguments
-     * @return Factory
-     */
-    public function setParameters(array $arguments): Factory
-    {
-        $this->arguments = $arguments;
-        return $this;
-    }
-
-    /**
-     * @param callable $function
-     * @return Factory
+     * Set function, which call will occur after instantiate
+     * @param callable $function Takes two arguments, where first is a instance of target object, second is a instance of vivace\di\Scope
+     * @return Factory|$this
      */
     public function setUp(callable $function): Factory
     {
@@ -80,6 +85,12 @@ class Instance implements Factory
         return $this;
     }
 
+    /**
+     * Instance object of target class
+     * @param Scope $scope Uses scope for resolving dependencies
+     * @return object Instance object of target class
+     * @throws ImportFailureError If one of dependencies not can be resolved
+     */
     public function produce(Scope $scope)
     {
         if (isset($this->instance)) {
@@ -106,6 +117,7 @@ class Instance implements Factory
      * @param Scope $scope
      * @return mixed
      * @throws ImportFailureError
+     * @see Instance::produce
      */
     public function __invoke(Scope $scope)
     {
@@ -113,7 +125,7 @@ class Instance implements Factory
     }
 
     /**
-     * @return string
+     * @return string return target class name
      */
     public function getClassName(): string
     {

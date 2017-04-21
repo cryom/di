@@ -9,93 +9,107 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/php-vivace/di/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/php-vivace/di/?branch=master)
 
 ## Synopsis
-Inversion of Control container with support for advanced inheritance of the container.
-Than it is similar to "bundles" from the framework ___symfony___.
-
+Inversion of Control container with support for advanced inheritance and resolving dependencies of the container.
+Use to build unrelated modular systems.
+See example for understanding.
 
 ## Code Example
 
 ### Base
-vendor/name/PackageA.php - from a third party developer
+./vendor/blog/Package.php - Scope for use 
 ```php
-class PackageA extends vivace\di\Scope\Package
+namespace blog;
+
+class Package extends \vivace\di\Scope\Package
 {
     public function __construct()
     {
-        $this->export('vendorA\tool\ClassA', function (\vivace\di\Scope $scope) {
+        //define a new factory, which instantiate \blog\Widget with resolving of dependenties and return it
+        $this->export('blog\Widget', function (\vivace\di\Scope $scope) {
+            
+            //import instance of \PDO from main scope
+            $db = $scope->import(\PDO::class);
+            
+            //import instance of \PDO from main scope
+            $cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
+            
+            //import instance of Psr\Log\LoggerInterface from main scope
             $logger = $scope->import(Psr\Log\LoggerInterface::class);
-            $db = $scope->import(\PDO::class);
-            $cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
-            return new vendorA\tool\ClassA($db, $cache, $logger);
+            
+            return new \blog\Widget($db, $cache, $logger);
         });
-
-        $this->export('vendorA\tool\ClassB', function (\vivace\di\Scope $scope) {
-            $db = $scope->import(\PDO::class);
-            $cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
-            return new vendorA\tool\ClassB($db, $cache);
-        });
+        //Below are defined, through call of "export" method, all the components necessary for working blog.
+        //...
     }
-}
-```
-
-libs/RedisCache.php - from a third party developer
-```php
-class RedisCache extends BaseCache
-{
-    use \vivace\di\Package;
     
-    public function __construct(string $prefix = null)
+}
+```
+
+./vendor/admin/Package.php - from a third party developer
+```php
+namespace admin;
+
+class Package extends \vivace\di\Scope\Package
+{   
+    public function __construct(string $mode)
     {
-        $this->export(\Psr\Cache\CacheItemPoolInterface::class, function (\vivace\di\Scope $scope) use ($prefix) {
-            static $instance;
-            if ($instance) {
-                return $instance;
-            }
+        $this->export('admin\Widget', function (\vivace\di\Scope $scope) use ($mode) {
             $logger = $scope->import(Psr\Log\LoggerInterface::class);
-            $instance = new RedisCache();
-            $instance->setPrefix($prefix);
-            $instance->setLogger($logger);
-            return $instance;
+            $db = $scope->import(\PDO::class);
+            $widget = new \admin\Widget($db);
+            $widget->setLogger($logger);
+            $widget->setMode($mode);
+            
+            return $widget;
         });
     }
 }
 ```
 
-app/Main.php - your application package
+./src/Package.php - your application package
 ```php
-class Main extends \vivace\di\Scope\Package
+namespace app;
+class Package extends \vivace\di\Scope\Package
 {
     public function __construct()
     {
-        $this->export('cache.dummy', function () {
-            return new DummyCache();
-        });
+        //Below is a lot of code, of course you can make it more convenient for perception 
+        
         //By default, all logs are written to the file
         $this->export(\Psr\Log\LoggerInterface::class, function () {
             return new FileLogger();
         });
-        //Default db connection
+        
+        //define dummy logger for disable logs for some packages
+        $this->export('logger.dummy', function () {
+            return new DummyLogger();
+        });
+        
+        //Export connection to main data base.
         $this->export(PDO::class, function () {
             return new PDO('<main_db_dsn>');
         });
-        //Additional db connection
+        //Export additional connection for other data base.
         $this->export('db.second', function () {
-            return new PDO('<main_db_dsn>');
+            return new PDO('<second_db_dsn>');
         });
-        /*
-        'RedisCache' not implement 'ContainerInterface', only used trait of 'vivace\di\Package', which has method 'getScope'. 
-        Result of method 'getScope' is object instantiated of 'ContainerInterface', which can be passed in 'use' method
-        */
-        $this->use((new RedisCache('app_prefix'))->getScope())
-            ->as(\Psr\Cache\CacheItemPoolInterface::class, 'cache.redis');
-
-        $this->use(new PackageA())
-            //Disable the cache through the use of "DummyCache" for "vendor\tool\ClassB"
-            ->insteadFor('vendorA\tool\ClassB', \vivace\di\Package::new([
-                \Psr\Cache\CacheItemPoolInterface::class => 'cache.dummy'
-            ]))
-            ->insteadOf(\Psr\Cache\CacheItemPoolInterface::class, 'cache.redis')
+        //This method allow this package inherit other packages
+        $this->use(new \blog\Package())
+            //this method allow resolve dependencies for concrete components exported inside package.
+            ->insteadFor('blog\Widget', [
+                \Psr\Cache\CacheItemPoolInterface::class => function(vivace\di\Scope $scope){
+                    return MyCacheComponent();    
+                }
+            ])
+            //This method allows you to replace one dependent component with another.
+            //Inside the package (in this case \blog\Package) when importing the \PDO instance, will return an instance of 'db.second'
             ->insteadOf(PDO::class, 'db.second');
+            
+        $this->use(new \admin\Package())
+            // Disable logs for \admin\Package through use dummy implementation of Psr\Log\LoggerInterface, 
+            ->insteadOf(Psr\Log\LoggerInterface::class, 'logger.dummy')
+            //This method allow set alias for component for resolve of name conflict, now admin\Widget can be imported by class name and by alias 'admin' 
+            ->as('admin\Widget', 'admin')
     }
 }
 
@@ -104,10 +118,13 @@ class Main extends \vivace\di\Scope\Package
 web/index.php
 
 ```php
-$scope = new Main();
-$instanceB = $scope->import(vendorA\tool\ClassB::class);
-$instanceA = $scope->import(vendorA\tool\ClassA::class);
-$cache = $scope->import(\Psr\Cache\CacheItemPoolInterface::class);
+$scope = new app\Package();
+$blog = $scope->import(blog\Widget::class);
+var_dump($blog instanceof \blog\Widget::class);// true
+
+$admin = $scope->import('admin');
+var_dump($admin instanceof \admin\Widget::class);// true
+
 ```
 ### Use Factory\Instance
 ```php

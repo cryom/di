@@ -47,7 +47,7 @@ class AutowireTest extends TestCase
         $this->assertSame($autowire->get(Bar::class), $autowire->get(Bar::class));
 
         $autowire = new Autowire();
-        $autowire->get(Bar::class)->setParameters([]);
+        $autowire->get(Bar::class)->setArguments([]);
         $this->assertSame($autowire->get(Bar::class), $autowire->get(Bar::class));
 
         $autowire = new Autowire();

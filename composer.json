@@ -1,12 +1,12 @@
 {
   "name": "vivace/di",
-  "description": "Inversion of Control container with support for advanced inheritance of the container.",
+  "description": "Inversion of Control with support for advanced inheritance of the container for building modular applications.",
   "keywords": [
     "inversion",
     "dependency",
     "di"
   ],
-  "version": "v1.1.0",
+  "version": "v1.2.0",
   "type": "library",
   "require-dev": {
     "codeclimate/php-test-reporter": "^0.4.2",

@@ -35,7 +35,7 @@ class InstanceTest extends TestCase
     {
         $scope = new Branch([Resolver::class => Resolver::getFactory()]);
         $factory = new Instance(Foo::class);
-        $foo = $factory->setParameters(['val' => 'value'])->produce($scope);
+        $foo = $factory->setArguments(['val' => 'value'])->produce($scope);
         $this->assertEquals('value', $foo->val);
     }
 
@@ -54,7 +54,7 @@ class InstanceTest extends TestCase
     {
         $scope = new Branch([Resolver::class => Resolver::getFactory()]);
         $factory = new Instance(Foo::class);
-        $factory->setParameters(['val' => 123]);
+        $factory->setArguments(['val' => 123]);
         $factory->setUp(function (Foo $foo) {
             $foo->val = 'value';
         });

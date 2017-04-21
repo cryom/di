@@ -17,7 +17,7 @@ interface Factory
      * @param array $arguments
      * @return Factory
      */
-    public function setParameters(array $arguments): Factory;
+    public function setArguments(array $arguments): Factory;
 
     /**
      * @param callable $function
