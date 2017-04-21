@@ -38,6 +38,8 @@ class Package extends \vivace\di\Scope\Package
             
             return new \blog\Widget($db, $cache, $logger);
         });
+        
+        
         //Below are defined, through call of "export" method, all the components necessary for working blog.
         //...
     }
@@ -53,7 +55,13 @@ class Package extends \vivace\di\Scope\Package
 {   
     public function __construct(string $mode)
     {
+        // export logger which will be use in this scope, if on top wont exported another instance of Logger
+        $this->export(Psr\Log\LoggerInterface::class, function (\vivace\di\Scope $scope) {
+            return new admin\Logger();
+        })
+            
         $this->export('admin\Widget', function (\vivace\di\Scope $scope) use ($mode) {
+            //Default will be use Psr\Log\LoggerInterface::class of this scope
             $logger = $scope->import(Psr\Log\LoggerInterface::class);
             $db = $scope->import(\PDO::class);
             $widget = new \admin\Widget($db);
@@ -62,6 +70,7 @@ class Package extends \vivace\di\Scope\Package
             
             return $widget;
         });
+        
     }
 }
 ```
