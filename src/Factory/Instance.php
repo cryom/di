@@ -42,7 +42,7 @@ class Instance implements Factory
      * @throws BadDefinitionError
      * @see Instance::setArguments
      */
-    public function __construct(string $className, array $arguments = [], $asService = false)
+    public function __construct(string $className, array $arguments = [], $asService = true)
     {
         if (!class_exists($className)) {
             throw new BadDefinitionError("Class $className not found");
@@ -93,11 +93,11 @@ class Instance implements Factory
      */
     public function produce(Scope $scope)
     {
-        if (isset($this->instance)) {
+        if ($this->service && $this->instance) {
             return $this->instance;
         }
         /** @var Resolver $resolver */
-        $resolver = $scope->import(Resolver::class);
+        $resolver = $this->getResolver($scope);
         try {
             $arguments = $resolver->resolve($this->className, $this->arguments);
         } catch (NotResolvedError $e) {
@@ -113,13 +113,17 @@ class Instance implements Factory
         return $object;
     }
 
+    protected function getResolver(Scope $scope): Resolver
+    {
+        return $scope->import(Resolver::class);
+    }
     /**
      * @param Scope $scope
      * @return mixed
      * @throws ImportFailureError
      * @see Instance::produce
      */
-    public function __invoke(Scope $scope)
+    final public function __invoke(Scope $scope)
     {
         return $this->produce($scope);
     }

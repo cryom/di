@@ -14,6 +14,7 @@ use vivace\di\BadDefinitionError;
 use vivace\di\Factory\Instance;
 use vivace\di\ImportFailureError;
 use vivace\di\Resolver;
+use vivace\di\Scope;
 use vivace\di\Scope\Branch;
 use vivace\di\tests\fixture\Bar;
 use vivace\di\tests\fixture\Foo;
@@ -31,9 +32,15 @@ class InstanceTest extends TestCase
         new Instance('123');
     }
 
+    protected function getResolverFactory()
+    {
+        return function (Scope $scope) {
+            return new Resolver($scope);
+        };
+    }
     public function testFactoryArguments()
     {
-        $scope = new Branch([Resolver::class => Resolver::getFactory()]);
+        $scope = new Branch([Resolver::class => $this->getResolverFactory()]);
         $factory = new Instance(Foo::class);
         $foo = $factory->setArguments(['val' => 'value'])->produce($scope);
         $this->assertEquals('value', $foo->val);
@@ -42,17 +49,17 @@ class InstanceTest extends TestCase
 
     public function testFactoryService()
     {
-        $scope = new Branch([Resolver::class => Resolver::getFactory()]);
+        $scope = new Branch([Resolver::class => $this->getResolverFactory()]);
         $factory = new Instance(Foo::class);
-        $this->assertNotSame($factory->produce($scope), $factory->produce($scope));
-        $factory->asService();
         $this->assertSame($factory->produce($scope), $factory->produce($scope));
+        $factory->asService(false);
+        $this->assertNotSame($factory->produce($scope), $factory->produce($scope));
     }
 
 
     public function testFactoryApply()
     {
-        $scope = new Branch([Resolver::class => Resolver::getFactory()]);
+        $scope = new Branch([Resolver::class => $this->getResolverFactory()]);
         $factory = new Instance(Foo::class);
         $factory->setArguments(['val' => 123]);
         $factory->setUp(function (Foo $foo) {
@@ -66,6 +73,6 @@ class InstanceTest extends TestCase
     {
         $this->expectException(ImportFailureError::class);
         $factory = new Instance(Bar::class);
-        $factory->produce(new Branch([Resolver::class => Resolver::getFactory()]));
+        $factory->produce(new Branch([Resolver::class => $this->getResolverFactory()]));
     }
 }

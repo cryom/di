@@ -8,22 +8,37 @@
 
 namespace vivace\di\Scope;
 
+use vivace\di\Container\Autowire;
+use vivace\di\Factory;
+use vivace\di\Resolver;
 use vivace\di\Scope;
 
-class Package implements Scope
+abstract class Package implements Scope
 {
     use \vivace\di\Package{
         getScope as private;
     }
 
+    private $autowire;
+
+    public function __construct()
+    {
+        $this->autowire = new Autowire();
+        $this->use($this->autowire);
+
+        $this->export('vivace\di\Resolver', function (Scope $scope) {
+            return new Resolver($scope);
+        });
+    }
+
     /** @inheritdoc */
-    public function get($id):callable
+    public function get($id)
     {
         return $this->getScope()->get($id);
     }
 
     /** @inheritdoc */
-    public function has($id):bool
+    public function has($id)
     {
         return $this->getScope()->has($id);
     }
@@ -32,5 +47,14 @@ class Package implements Scope
     public function import(string $id)
     {
         return $this->getScope()->import($id);
+    }
+
+    protected function define(string $className, array $arguments = []): Factory
+    {
+        $factory = $this->autowire->get($className);
+        if ($arguments) {
+            $factory->setArguments($arguments);
+        }
+        return $factory;
     }
 }

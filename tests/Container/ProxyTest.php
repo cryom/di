@@ -73,10 +73,14 @@ class ProxyTest extends TestCase
         ]);
         $proxy = new Container\Proxy(new Container\Base([
             'a' => \vivace\di\wrap('a1'),
+            'b' => function (Scope $scope) {
+                return $scope->import('a');
+            }
         ]));
         $proxy->primary('a');
 
-        $this->assertEquals('a1', call_user_func($proxy->get('a'), $scope));
+        $scope = new Scope\Node($scope, $proxy);
+        $this->assertEquals('a1', call_user_func($proxy->get('b'), $scope));
 
     }
 

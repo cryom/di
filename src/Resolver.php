@@ -8,26 +8,20 @@
 
 namespace vivace\di;
 
-
 /**
- * Class Resolver
- * @package vivace\di
- */
-
-/**
- * Class Resolver
+ * Allows dependencies by finding values from the scope.
  * @package vivace\di
  */
 class Resolver
 {
     /** @var array */
     private $metaData = [];
-    /** @var Scope */
+    /** @var Scope The scope in which the values will be searched */
     private $scope;
 
     /**
      * Resolver constructor.
-     * @param Scope $scope
+     * @param Scope $scope The scope in which the values will be searched
      */
     public function __construct(Scope $scope)
     {
@@ -36,7 +30,7 @@ class Resolver
 
     /**
      * @param $target
-     * @return array
+     * @return array [position, name, className, defaultValue]
      */
     protected function analyze($target): array
     {
@@ -113,12 +107,5 @@ class Resolver
     public function __invoke(string $className, array $arguments = [])
     {
         return $this->resolve($className, $arguments);
-    }
-
-    public static function getFactory(): callable
-    {
-        return function (Scope $scope) {
-            return new self($scope);
-        };
     }
 }

@@ -27,13 +27,6 @@ interface Proxiable extends ContainerInterface
     public function insteadOf(string $sourceId, string $delegateId): Proxiable;
 
     /**
-     * Revoke redefinition
-     * @param string $targetId
-     * @return mixed
-     */
-    public function primary(string $targetId):Proxiable;
-
-    /**
      * Redirection imported factories for concrete factory
      * The principle of operation is the same as the method of "insteadOf"
      * @param string $targetId Target factory id

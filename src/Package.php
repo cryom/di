@@ -11,7 +11,7 @@ trait Package
     /** @var callable[] */
     private $factories = [];
     /** @var ContainerInterface */
-    private $use = [];
+    private $used = [];
 
     final protected function export(string $id, callable $factory)
     {
@@ -26,15 +26,15 @@ trait Package
         if (!$container instanceof Proxiable) {
             $container = new Proxy($container);
         }
-        return $this->use[] = $container;
+        return $this->used[] = $container;
     }
 
     public function getScope(): Scope
     {
         $self = new Branch($this->factories);
-        if (empty($this->use)) {
+        if (empty($this->used)) {
             return $self;
         }
-        return new Node($self, ...$this->use);
+        return new Node($self, ...$this->used);
     }
 }
