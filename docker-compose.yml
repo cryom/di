@@ -8,6 +8,7 @@ services:
       - .:/code
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/cc:/tmp/cc
+
   coverage:
     build:
       ./docker/coverage

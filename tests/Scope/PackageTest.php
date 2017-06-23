@@ -14,9 +14,15 @@ use vivace\di\Container\Base;
 use vivace\di\ImportFailureError;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
+use vivace\di\tests\fixture\Foo;
 
 class PackageTest extends TestCase
 {
+    public function setUp()
+    {
+        require_once dirname(__DIR__) . '/fixture/classes.php';
+    }
+
     public function testHas()
     {
         $pkg = new class extends Package
@@ -79,5 +85,20 @@ class PackageTest extends TestCase
         $this->assertEquals('da', $pkg->import('d'));
         $this->expectException(ImportFailureError::class);
         $pkg->import('ddd');
+    }
+
+    public function testDefine()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                parent::__construct();
+                $this->class(Foo::class, ['val' => 1]);
+            }
+        };
+
+        $this->assertInstanceOf(Foo::class, $foo = $pkg->import(Foo::class));
+        $this->assertEquals(1, $foo->val);
     }
 }

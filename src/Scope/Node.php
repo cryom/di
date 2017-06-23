@@ -74,4 +74,14 @@ class Node implements Scope
 
         return call_user_func($factory, $this);
     }
+
+    public function append(ContainerInterface $scope)
+    {
+        $this->containers[] = $scope;
+    }
+
+    public function prepend(ContainerInterface $scope)
+    {
+        array_unshift($this->containers, $scope);
+    }
 }

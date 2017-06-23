@@ -13,7 +13,6 @@ use Psr\Container\ContainerInterface;
 use vivace\di\Factory;
 use vivace\di\Factory\Instance;
 use vivace\di\ImportFailureError;
-use vivace\di\Package;
 use vivace\di\Resolver;
 use vivace\di\Scope;
 use vivace\di\Scope\Node;

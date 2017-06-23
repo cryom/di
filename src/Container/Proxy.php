@@ -29,7 +29,7 @@ class Proxy extends Base implements Proxiable
     }
 
     /** @inheritdoc */
-    public function as (string $sourceId, string $alias): Proxiable
+    public function as(string $sourceId, string $alias): Proxiable
     {
         $this->items[$alias] = $this->get($sourceId);
         return $this;
