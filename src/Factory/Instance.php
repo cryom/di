@@ -11,7 +11,6 @@ namespace vivace\di\Factory;
 use vivace\di\BadDefinitionError;
 use vivace\di\Factory;
 use vivace\di\ImportFailureError;
-use vivace\di\NotResolvedError;
 use vivace\di\Resolver;
 use vivace\di\Scope;
 
@@ -44,9 +43,6 @@ class Instance implements Factory
      */
     public function __construct(string $className, array $arguments = [], $asService = true)
     {
-        if (!class_exists($className)) {
-            throw new BadDefinitionError("Class $className not found");
-        }
         $this->className = $className;
         $this->setArguments($arguments);
         $this->asService($asService);
@@ -89,20 +85,19 @@ class Instance implements Factory
      * Instance object of target class
      * @param Scope $scope Uses scope for resolving dependencies
      * @return object Instance object of target class
-     * @throws ImportFailureError If one of dependencies not can be resolved
+     * @throws BadDefinitionError
      */
     public function produce(Scope $scope)
     {
         if ($this->service && $this->instance) {
             return $this->instance;
         }
+        if (!class_exists($this->getClassName())) {
+            throw new BadDefinitionError("Class {$this->getClassName()} not found");
+        }
         /** @var Resolver $resolver */
         $resolver = $this->getResolver($scope);
-        try {
-            $arguments = $resolver->resolve($this->className, $this->arguments);
-        } catch (NotResolvedError $e) {
-            throw new ImportFailureError("Import failure: " . $e->getMessage(), 0, $e);
-        }
+        $arguments = $resolver->resolve($this->className, $this->arguments);
         $object = new $this->className(...$arguments);
         if (!empty($this->setUp)) {
             call_user_func($this->setUp, $object, $scope);

@@ -35,3 +35,14 @@ class Bar
         $this->val1 = $val1;
     }
 }
+
+interface Baz
+{
+
+}
+
+
+class BazImpl implements Baz
+{
+
+}

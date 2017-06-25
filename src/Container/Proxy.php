@@ -18,7 +18,7 @@ class Proxy extends Base implements Proxiable
     /** @var  ContainerInterface */
     private $container;
     /** @var callable[] */
-    private $primary = [];
+    private $important = [];
     /** @var callable[][] */
     private $bounds = [];
 
@@ -38,7 +38,7 @@ class Proxy extends Base implements Proxiable
     /** @inheritdoc */
     public function insteadOf(string $sourceId, string $delegateId): Proxiable
     {
-        $this->primary[$sourceId] = function (Scope $scope) use ($delegateId) {
+        $this->important[$sourceId] = function (Scope $scope) use ($delegateId) {
             $scope = new Scope\Node($scope, $this);
             return $scope->import($delegateId);
         };
@@ -52,11 +52,11 @@ class Proxy extends Base implements Proxiable
         } catch (NotFoundExceptionInterface $e) {
             $factory = \vivace\di\wrap($this->container->get($id));
         }
-        if (empty($this->primary) && !isset($this->bounds[$id])) {
+        if (empty($this->important) && !isset($this->bounds[$id])) {
             return $factory;
         }
         return function (Scope $scope) use ($factory, $id) {
-            $primaryFactories = array_merge($this->bounds[$id] ?? [], $this->primary);
+            $primaryFactories = array_merge($this->bounds[$id] ?? [], $this->important);
             $scope = new Scope\Node(new Base($primaryFactories), $scope);
 
             return call_user_func($factory, $scope);
@@ -73,9 +73,9 @@ class Proxy extends Base implements Proxiable
      * @param string $targetId
      * @return mixed
      */
-    public function primary(string $targetId): Proxiable
+    public function important(string $targetId): Proxiable
     {
-        $this->primary[$targetId] = function (Scope $scope) use ($targetId) {
+        $this->important[$targetId] = function (Scope $scope) use ($targetId) {
             $factory = $this->container->get($targetId);
             return call_user_func(\vivace\di\wrap($factory), $scope);
         };

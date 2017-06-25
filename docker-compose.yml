@@ -30,5 +30,5 @@ services:
     volumes:
       - ./:/app
     environment:
-      XDEBUG_CONFIG: remote_host=172.17.42.1
+#      XDEBUG_CONFIG: remote_host=set in docker-compose.override.yml
       PHP_IDE_CONFIG: serverName=xdebug

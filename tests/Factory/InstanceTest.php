@@ -29,7 +29,8 @@ class InstanceTest extends TestCase
     public function testFactoryConstruct()
     {
         $this->expectException(BadDefinitionError::class);
-        new Instance('123');
+        $factory = new Instance('123');
+        $factory->produce(new Scope\Node());
     }
 
     protected function getResolverFactory()
@@ -71,7 +72,7 @@ class InstanceTest extends TestCase
 
     public function testNotResolved()
     {
-        $this->expectException(ImportFailureError::class);
+        $this->expectException(\Throwable::class);
         $factory = new Instance(Bar::class);
         $factory->produce(new Branch([Resolver::class => $this->getResolverFactory()]));
     }

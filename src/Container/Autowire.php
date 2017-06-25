@@ -10,9 +10,11 @@ namespace vivace\di\Container;
 
 
 use Psr\Container\ContainerInterface;
+use vivace\di\BadDefinitionError;
 use vivace\di\Factory;
 use vivace\di\Factory\Instance;
 use vivace\di\ImportFailureError;
+use vivace\di\NotFoundError;
 use vivace\di\Resolver;
 use vivace\di\Scope;
 use vivace\di\Scope\Node;
@@ -75,7 +77,11 @@ class Autowire implements ContainerInterface
                         },
                     ])
                     );
-                    return parent::produce($scope);
+                    try {
+                        return parent::produce($scope);
+                    } catch (BadDefinitionError $e) {
+                        throw new NotFoundError($e->getMessage());
+                    }
                 }
             }
         };

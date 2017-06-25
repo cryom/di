@@ -11,9 +11,10 @@ namespace vivace\di\tests\Scope;
 
 use PHPUnit\Framework\TestCase;
 use vivace\di\Container\Base;
-use vivace\di\ImportFailureError;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
+use vivace\di\tests\fixture\Baz;
+use vivace\di\tests\fixture\BazImpl;
 use vivace\di\tests\fixture\Foo;
 
 class PackageTest extends TestCase
@@ -83,22 +84,57 @@ class PackageTest extends TestCase
         $this->assertEquals('a', $pkg->import('a'));
         $this->assertEquals('b', $pkg->import('b'));
         $this->assertEquals('da', $pkg->import('d'));
-        $this->expectException(ImportFailureError::class);
+        $this->expectException(\Throwable::class);
         $pkg->import('ddd');
     }
 
-    public function testDefine()
+    public function testClass()
     {
         $pkg = new class extends Package
         {
             public function __construct()
             {
-                parent::__construct();
                 $this->class(Foo::class, ['val' => 1]);
             }
         };
 
         $this->assertInstanceOf(Foo::class, $foo = $pkg->import(Foo::class));
         $this->assertEquals(1, $foo->val);
+    }
+
+    public function testInterface()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->interface(Baz::class, BazImpl::class);
+            }
+        };
+
+        $this->assertInstanceOf(Baz::class, $pkg->import(Baz::class));
+        $this->assertInstanceOf(BazImpl::class, $pkg->import(Baz::class));
+    }
+
+    public function testAutowire()
+    {
+        $pkg = new class extends Package
+        {
+        };
+
+        $this->assertInstanceOf(BazImpl::class, $pkg->import(BazImpl::class));
+    }
+
+    public function testAlias()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->as(Baz::class, BazImpl::class);
+            }
+        };
+
+        $this->assertInstanceOf(Baz::class, $pkg->import(BazImpl::class));
     }
 }
