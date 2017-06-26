@@ -11,12 +11,12 @@ namespace vivace\di\tests\Scope;
 
 use PHPUnit\Framework\TestCase;
 use vivace\di\Container\Base;
-use vivace\di\Factory;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
 use vivace\di\tests\fixture\Baz;
 use vivace\di\tests\fixture\BazInterface;
 use vivace\di\tests\fixture\Foo;
+use vivace\di\tests\fixture\Foo2;
 
 class PackageTest extends TestCase
 {
@@ -145,5 +145,17 @@ class PackageTest extends TestCase
         };
 
         $this->assertInstanceOf(BazInterface::class, $pkg->import(BazInterface::class));
+    }
+
+    public function testImportWithInsteadOf()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->insteadOf(Foo::class, Foo2::class);
+            }
+        };
+        $this->assertInstanceOf(Foo2::class, $pkg->import(Foo::class));
     }
 }

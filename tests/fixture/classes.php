@@ -22,6 +22,13 @@ class Foo
     }
 }
 
+class Foo2 extends Foo
+{
+    public function __construct()
+    {
+        parent::__construct('foo2');
+    }
+}
 class Bar
 {
     /** @var Foo */

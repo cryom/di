@@ -33,8 +33,7 @@ abstract class Package implements Scope, Proxiable
     private $node;
     /** @var  Autowire */
     private $autowire;
-    /** @var  Node */
-    private $scope;
+
     /**
      * @return Branch
      */
@@ -90,7 +89,7 @@ abstract class Package implements Scope, Proxiable
      * @param ContainerInterface $container
      * @return Proxiable
      */
-    final protected function use (ContainerInterface $container): Proxiable
+    final protected function use(ContainerInterface $container): Proxiable
     {
         if (!$container instanceof Proxiable) {
             $container = new Proxy($container);
@@ -110,7 +109,7 @@ abstract class Package implements Scope, Proxiable
     }
 
     /** @inheritdoc */
-    public function as (string $sourceId, string $alias): Proxiable
+    public function as(string $sourceId, string $alias): Proxiable
     {
         return $this->getProxy()->as($sourceId, $alias);
     }
