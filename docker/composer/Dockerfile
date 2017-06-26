@@ -1,2 +1,2 @@
-FROM composer/composer:1.0
+FROM composer
 MAINTAINER Albert Sultanov <bert.sultanov.contact@gmail.com>
