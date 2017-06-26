@@ -53,7 +53,6 @@ class ProxyTest extends TestCase
 
     public function testInsteadOf()
     {
-        $scope = new Branch();
         $proxy = new Container\Proxy(new Container\Base([
             'a' => function (Scope $scope) {
                 return $scope->import('b');
@@ -62,27 +61,13 @@ class ProxyTest extends TestCase
             'z' => \vivace\di\wrap('z'),
         ]));
         $proxy->insteadOf('b', 'z');
+        $scope = new Scope\Node($proxy);
 
-        $this->assertEquals(call_user_func($proxy->get('z'), $scope), call_user_func($proxy->get('a'), $scope));
+        $a = $proxy->get('a');
+        $z = $proxy->get('z');
+        $this->assertEquals(call_user_func($z, $scope), call_user_func($a, $scope));
     }
 
-    public function testImportant()
-    {
-        $scope = new Branch([
-            'a' => \vivace\di\wrap('a'),
-        ]);
-        $proxy = new Container\Proxy(new Container\Base([
-            'a' => \vivace\di\wrap('a1'),
-            'b' => function (Scope $scope) {
-                return $scope->import('a');
-            }
-        ]));
-        $proxy->important('a');
-
-        $scope = new Scope\Node($scope, $proxy);
-        $this->assertEquals('a1', call_user_func($proxy->get('b'), $scope));
-
-    }
 
     public function testInsteadFor()
     {

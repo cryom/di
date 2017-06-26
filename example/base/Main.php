@@ -3,17 +3,15 @@
 namespace vivace\di\example\base;
 
 use vivace\di;
-use vivace\di\example\base\service\A;
+use vivace\di\example\base\service;
 
 class Main extends di\Scope\Package
 {
     public function __construct()
     {
-        $this->use(new di\example\base\module\api\Main());
-
-        $this->class('vivace\di\example\base\service\B', ['name' => 'CLASS B']);
-        $this->class('vivace\di\example\base\service\A', ['name' => 'CLASS A'])
-            ->setUp(function (A $a) {
+        $this->class(service\B::class, ['name' => 'CLASS B']);
+        $this->class(service\A::class, ['name' => 'CLASS A'])
+            ->setUp(function (service\A $a) {
                 $a->setData(['test' => 123]);
             });
     }
@@ -23,10 +21,13 @@ class Main extends di\Scope\Package
      */
     public function boot()
     {
-        /** @var di\example\base\service\B $obj */
-        $obj = $this->import('vivace\di\example\base\service\B');
-        $result = $obj->greeting();
-        return $result . $obj->getA()->do();
+        /** @var service\B $bClass */
+        $bClass = $this->import(service\B::class);
+
+        assert($bClass->getName() === 'CLASS B');
+        assert($bClass->getA() instanceof service\A);
+        assert($bClass->getA()->getData() === ['test' => 123]);
+        return "OK\n";
     }
 }
 

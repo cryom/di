@@ -72,7 +72,11 @@ abstract class Package implements Scope, Proxiable
      */
     private function getNode()
     {
-        return $this->node ?? $this->node = new Node($this->getBranch(), $this->getAutowire());
+        if (!$this->node) {
+            $this->node = new Node($this->getBranch());
+            $this->node->append($this->getAutowire(), false);
+        }
+        return $this->node;
     }
 
     /**

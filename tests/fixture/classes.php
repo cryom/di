@@ -53,3 +53,8 @@ class Baz implements BazInterface
 {
 
 }
+
+class Baz2 implements BazInterface
+{
+
+}
