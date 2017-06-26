@@ -10,7 +10,6 @@ namespace vivace\di\tests\Scope;
 
 
 use PHPUnit\Framework\TestCase;
-use Psr\Container\NotFoundExceptionInterface;
 use vivace\di\ImportFailureError;
 use vivace\di\RecursiveImportError;
 use vivace\di\Scope;
@@ -30,8 +29,12 @@ class BranchTest extends TestCase
     {
         $branch = new Branch(['a' => 1]);
         $this->assertNotEmpty($branch->get('a'));
-        $this->expectException(NotFoundExceptionInterface::class);
-        $branch->get('b');
+    }
+
+    public function testGetUndefined()
+    {
+        $branch = new Branch(['a' => 1]);
+        $this->assertNull($branch->get('undefined'));
     }
 
     public function testImport()

@@ -10,7 +10,6 @@ namespace vivace\di\tests\Scope;
 
 
 use PHPUnit\Framework\TestCase;
-use Psr\Container\NotFoundExceptionInterface;
 use vivace\di\Container;
 use vivace\di\ImportFailureError;
 use vivace\di\Scope;
@@ -33,10 +32,13 @@ class NodeTest extends TestCase
         $node = new Node(new Branch(['a' => 'a']), new Container\Base(['b' => 'b']));
         $this->assertInternalType('callable', $node->get('a'));
         $this->assertInternalType('callable', $node->get('b'));
-        $this->expectException(NotFoundExceptionInterface::class);
-        $node->get('c');
     }
 
+    public function testGetUndefined()
+    {
+        $node = new Node(new Branch(['a' => 'a']), new Branch(['b' => 'b']));
+        $this->assertNull($node->get('undefined'));
+    }
     public function testImport()
     {
         $node = new Node(

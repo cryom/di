@@ -10,7 +10,6 @@ namespace vivace\di\Container;
 
 
 use Psr\Container\ContainerInterface;
-use vivace\di\NotFoundError;
 use function vivace\di\wrap;
 
 class Base implements ContainerInterface
@@ -24,14 +23,11 @@ class Base implements ContainerInterface
 
     /**
      * @inheritdoc
-     * @return callable
+     * @return callable|null
      */
-    public function get($id): callable
+    public function get($id): ?callable
     {
-        if (!isset($this->items[$id])) {
-            throw new NotFoundError("$id not defined");
-        }
-        return wrap($this->items[$id]);
+        return isset($this->items[$id]) ? wrap($this->items[$id]) : null;
     }
 
     /**

@@ -36,13 +36,13 @@ class Bar
     }
 }
 
-interface Baz
+interface BazInterface
 {
 
 }
 
 
-class BazImpl implements Baz
+class Baz implements BazInterface
 {
 
 }

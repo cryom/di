@@ -10,11 +10,9 @@ namespace vivace\di\Container;
 
 
 use Psr\Container\ContainerInterface;
-use vivace\di\BadDefinitionError;
 use vivace\di\Factory;
 use vivace\di\Factory\Instance;
 use vivace\di\ImportFailureError;
-use vivace\di\NotFoundError;
 use vivace\di\Resolver;
 use vivace\di\Scope;
 use vivace\di\Scope\Node;
@@ -24,10 +22,12 @@ class Autowire implements ContainerInterface
     private $factories = [];
 
     /** @inheritdoc */
-    public function get($id):Factory
+    public function get($id):?Factory
     {
         if (isset($this->factories[$id])) {
             return $this->factories[$id];
+        } elseif (!$this->has($id)) {
+            return null;
         }
         return new class($id, $this->factories) extends Instance
         {
@@ -77,11 +77,7 @@ class Autowire implements ContainerInterface
                         },
                     ])
                     );
-                    try {
-                        return parent::produce($scope);
-                    } catch (BadDefinitionError $e) {
-                        throw new NotFoundError($e->getMessage());
-                    }
+                    return parent::produce($scope);
                 }
             }
         };

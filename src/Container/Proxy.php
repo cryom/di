@@ -8,7 +8,6 @@
 namespace vivace\di\Container;
 
 use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use vivace\di\InvalidArgumentError;
 use vivace\di\Proxiable;
 use vivace\di\Scope;
@@ -45,16 +44,18 @@ class Proxy extends Base implements Proxiable
         return $this;
     }
 
-    public function get($id): callable
+    /**
+     * @param string $id
+     * @return callable|null
+     */
+    public function get($id): ?callable
     {
-        try {
-            $factory = parent::get($id);
-        } catch (NotFoundExceptionInterface $e) {
-            $factory = \vivace\di\wrap($this->container->get($id));
-        }
-        if (empty($this->important) && !isset($this->bounds[$id])) {
+        $factory = parent::get($id) ?? $this->container->get($id);
+
+        if ($factory === null || (empty($this->important) && !isset($this->bounds[$id]))) {
             return $factory;
         }
+        $factory = \vivace\di\wrap($factory);
         return function (Scope $scope) use ($factory, $id) {
             $primaryFactories = array_merge($this->bounds[$id] ?? [], $this->important);
             $scope = new Scope\Node(new Base($primaryFactories), $scope);

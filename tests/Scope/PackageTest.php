@@ -11,10 +11,11 @@ namespace vivace\di\tests\Scope;
 
 use PHPUnit\Framework\TestCase;
 use vivace\di\Container\Base;
+use vivace\di\Factory;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
 use vivace\di\tests\fixture\Baz;
-use vivace\di\tests\fixture\BazImpl;
+use vivace\di\tests\fixture\BazInterface;
 use vivace\di\tests\fixture\Foo;
 
 class PackageTest extends TestCase
@@ -108,12 +109,12 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
-                $this->interface(Baz::class, BazImpl::class);
+                $this->interface(BazInterface::class, Baz::class);
             }
         };
 
-        $this->assertInstanceOf(Baz::class, $pkg->import(Baz::class));
-        $this->assertInstanceOf(BazImpl::class, $pkg->import(Baz::class));
+        $this->assertInstanceOf(BazInterface::class, $pkg->import(BazInterface::class));
+        $this->assertInstanceOf(Baz::class, $pkg->import(BazInterface::class));
     }
 
     public function testAutowire()
@@ -122,19 +123,27 @@ class PackageTest extends TestCase
         {
         };
 
-        $this->assertInstanceOf(BazImpl::class, $pkg->import(BazImpl::class));
+        $this->assertInstanceOf(Baz::class, $pkg->import(Baz::class));
     }
 
-    public function testAlias()
+    public function testGetFactoryForNotDefinedObject()
+    {
+        $pkg = new class extends Package
+        {
+        };
+        $this->assertInternalType('callable', $pkg->get(Baz::class));
+    }
+
+    public function testImportByAliasWithAutowire()
     {
         $pkg = new class extends Package
         {
             public function __construct()
             {
-                $this->as(Baz::class, BazImpl::class);
+                $this->as(Baz::class, BazInterface::class);
             }
         };
 
-        $this->assertInstanceOf(Baz::class, $pkg->import(BazImpl::class));
+        $this->assertInstanceOf(BazInterface::class, $pkg->import(BazInterface::class));
     }
 }

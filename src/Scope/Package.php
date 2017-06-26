@@ -14,6 +14,7 @@ use vivace\di\Container\Autowire;
 use vivace\di\Container\Proxy;
 use vivace\di\Factory;
 use vivace\di\Factory\Instance;
+use vivace\di\ImportFailureError;
 use vivace\di\Proxiable;
 use vivace\di\Resolver;
 use vivace\di\Scope;
@@ -73,14 +74,6 @@ abstract class Package implements Scope, Proxiable
     }
 
     /**
-     * @return Node
-     */
-    private function getScope()
-    {
-        return $this->scope ?? $this->scope = new Node($this->getProxy());
-    }
-
-    /**
      * @param string $id
      * @param callable $factory
      * @throws BadDefinitionError
@@ -110,7 +103,10 @@ abstract class Package implements Scope, Proxiable
     /** @inheritdoc */
     public function import(string $id)
     {
-        return $this->getScope()->import($id);
+        if (null !== ($factory = $this->get($id))) {
+            return call_user_func($factory, $this);
+        }
+        throw new ImportFailureError("Undefined $id");
     }
 
     /** @inheritdoc */
@@ -137,7 +133,7 @@ abstract class Package implements Scope, Proxiable
      */
     public function get($id)
     {
-        return $this->getScope()->get($id);
+        return $this->getProxy()->get($id);
     }
 
     /**
@@ -146,7 +142,7 @@ abstract class Package implements Scope, Proxiable
      */
     public function has($id)
     {
-        return $this->getScope()->has($id);
+        return $this->getProxy()->has($id);
     }
 
     /**

@@ -10,9 +10,7 @@ namespace vivace\di\Scope;
 
 
 use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use vivace\di\ImportFailureError;
-use vivace\di\NotFoundError;
 use vivace\di\Scope;
 
 class Node implements Scope
@@ -28,20 +26,22 @@ class Node implements Scope
 
 
     /** @inheritdoc */
-    public function get($id): callable
+    public function get($id): ?callable
     {
         foreach ($this->containers as $container) {
             if (isset($this->stack[$id]) && in_array($container, $this->stack[$id], true)) {
                 continue;
             }
-            try {
-                $factory = $container->get($id);
-            } catch (NotFoundExceptionInterface $e) {
+            if (!$container->has($id)) {
                 continue;
+            }
+            if (null === ($factory = $container->get($id))) {
+                break;
             }
             return function (Scope $scope) use ($id, $factory, $container) {
                 $this->stack[$id][] = $container;
-                $result = call_user_func(\vivace\di\wrap($factory), $scope);
+                $factory = \vivace\di\wrap($factory);
+                $result = call_user_func($factory, $scope);
                 array_pop($this->stack[$id]);
                 if (empty($this->stack[$id])) {
                     unset($this->stack[$id]);
@@ -49,7 +49,7 @@ class Node implements Scope
                 return $result;
             };
         }
-        throw new NotFoundError("Item $id not found.");
+        return null;
     }
 
     /** @inheritdoc */
@@ -66,10 +66,8 @@ class Node implements Scope
     /** @inheritdoc */
     public function import(string $id)
     {
-        try {
-            $factory = $this->get($id);
-        } catch (NotFoundExceptionInterface $e) {
-            throw new ImportFailureError($e->getMessage(), 0, $e);
+        if (null === ($factory = $this->get($id))) {
+            throw new ImportFailureError("Undefined $id");
         }
 
         return call_user_func($factory, $this);
