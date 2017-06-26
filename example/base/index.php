@@ -7,5 +7,4 @@ require __DIR__ . '/Main.php';
 
 $app = new \vivace\di\example\base\Main();
 
-echo $app->getB()->getName(), "\n";
-echo $app->getB()->getA()->do(), "\n";
+echo $app->boot();

@@ -66,7 +66,7 @@ class ProxyTest extends TestCase
         $this->assertEquals(call_user_func($proxy->get('z'), $scope), call_user_func($proxy->get('a'), $scope));
     }
 
-    public function testPrimary()
+    public function testImportant()
     {
         $scope = new Branch([
             'a' => \vivace\di\wrap('a'),
@@ -77,7 +77,7 @@ class ProxyTest extends TestCase
                 return $scope->import('a');
             }
         ]));
-        $proxy->primary('a');
+        $proxy->important('a');
 
         $scope = new Scope\Node($scope, $proxy);
         $this->assertEquals('a1', call_user_func($proxy->get('b'), $scope));

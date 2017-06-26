@@ -22,6 +22,13 @@ class Foo
     }
 }
 
+class Foo2 extends Foo
+{
+    public function __construct()
+    {
+        parent::__construct('foo2');
+    }
+}
 class Bar
 {
     /** @var Foo */
@@ -34,4 +41,15 @@ class Bar
         $this->val = $val;
         $this->val1 = $val1;
     }
+}
+
+interface BazInterface
+{
+
+}
+
+
+class Baz implements BazInterface
+{
+
 }

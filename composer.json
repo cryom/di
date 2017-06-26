@@ -29,6 +29,7 @@
     ]
   },
   "require": {
+    "php": "^7.1",
     "psr/cache": "^1.0",
     "psr/container": "^1.0"
   }

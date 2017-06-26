@@ -4,3 +4,4 @@ composer.phar
 /tests/_output
 /tests/_envs
 /build
+docker-compose.override.yml

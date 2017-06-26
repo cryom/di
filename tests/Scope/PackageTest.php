@@ -11,12 +11,21 @@ namespace vivace\di\tests\Scope;
 
 use PHPUnit\Framework\TestCase;
 use vivace\di\Container\Base;
-use vivace\di\ImportFailureError;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
+use vivace\di\tests\fixture\Bar;
+use vivace\di\tests\fixture\Baz;
+use vivace\di\tests\fixture\BazInterface;
+use vivace\di\tests\fixture\Foo;
+use vivace\di\tests\fixture\Foo2;
 
 class PackageTest extends TestCase
 {
+    public function setUp()
+    {
+        require_once dirname(__DIR__) . '/fixture/classes.php';
+    }
+
     public function testHas()
     {
         $pkg = new class extends Package
@@ -77,7 +86,92 @@ class PackageTest extends TestCase
         $this->assertEquals('a', $pkg->import('a'));
         $this->assertEquals('b', $pkg->import('b'));
         $this->assertEquals('da', $pkg->import('d'));
-        $this->expectException(ImportFailureError::class);
+        $this->expectException(\Throwable::class);
         $pkg->import('ddd');
+    }
+
+    public function testClass()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->class(Foo::class, ['val' => 1]);
+            }
+        };
+
+        $this->assertInstanceOf(Foo::class, $foo = $pkg->import(Foo::class));
+        $this->assertEquals(1, $foo->val);
+    }
+
+    public function testInterface()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->interface(BazInterface::class, Baz::class);
+            }
+        };
+
+        $this->assertInstanceOf(BazInterface::class, $pkg->import(BazInterface::class));
+        $this->assertInstanceOf(Baz::class, $pkg->import(BazInterface::class));
+    }
+
+    public function testAutowire()
+    {
+        $pkg = new class extends Package
+        {
+        };
+
+        $this->assertInstanceOf(Baz::class, $pkg->import(Baz::class));
+    }
+
+    public function testGetFactoryForNotDefinedObject()
+    {
+        $pkg = new class extends Package
+        {
+        };
+        $this->assertInternalType('callable', $pkg->get(Baz::class));
+    }
+
+    public function testImportByAliasWithAutowire()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->as(Baz::class, BazInterface::class);
+            }
+        };
+
+        $this->assertInstanceOf(BazInterface::class, $pkg->import(BazInterface::class));
+    }
+
+    public function testImportWithInsteadOf()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->insteadOf(Foo::class, Foo2::class);
+            }
+        };
+        $this->assertInstanceOf(Foo2::class, $pkg->import(Foo::class));
+    }
+
+    public function testImportWithInsteadFor()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->insteadFor(Bar::class, [
+                    Foo::class => Foo2::class
+                ]);
+            }
+        };
+        $bar = $pkg->import(Bar::class);
+        $this->assertInstanceOf(Foo2::class, $bar->val);
     }
 }
