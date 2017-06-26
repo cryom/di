@@ -9,7 +9,6 @@ class Main extends di\Scope\Package
 {
     public function __construct()
     {
-        parent::__construct();
         $this->use(new di\example\base\module\api\Main());
 
         $this->class('vivace\di\example\base\service\B', ['name' => 'CLASS B']);

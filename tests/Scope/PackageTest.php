@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use vivace\di\Container\Base;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
+use vivace\di\tests\fixture\Bar;
 use vivace\di\tests\fixture\Baz;
 use vivace\di\tests\fixture\BazInterface;
 use vivace\di\tests\fixture\Foo;
@@ -157,5 +158,20 @@ class PackageTest extends TestCase
             }
         };
         $this->assertInstanceOf(Foo2::class, $pkg->import(Foo::class));
+    }
+
+    public function testImportWithInsteadFor()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->insteadFor(Bar::class, [
+                    Foo::class => Foo2::class
+                ]);
+            }
+        };
+        $bar = $pkg->import(Bar::class);
+        $this->assertInstanceOf(Foo2::class, $bar->val);
     }
 }

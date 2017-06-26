@@ -40,10 +40,13 @@ abstract class Package implements Scope, Proxiable
     private function getBranch()
     {
         return $this->branch ?? $this->branch = new Branch([
-                'vivace\di\Resolver' => function (Scope $scope) {
-                    return new Resolver($scope);
-                }
+                'vivace\di\Resolver' => \Closure::fromCallable([$this, 'createResolver'])
             ]);
+    }
+
+    protected function createResolver(Scope $scope): Resolver
+    {
+        return new Resolver($scope);
     }
 
     /**
