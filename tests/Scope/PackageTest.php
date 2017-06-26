@@ -11,7 +11,6 @@ namespace vivace\di\tests\Scope;
 
 use PHPUnit\Framework\TestCase;
 use vivace\di\Container\Base;
-use vivace\di\example\base\Main;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
 use vivace\di\tests\fixture\Bar;
@@ -194,9 +193,5 @@ class PackageTest extends TestCase
         };
 
         $this->assertInstanceOf(Baz2::class, $pkg->import(BazInterface::class));
-    }
-
-    public function testTTTT(){
-        require_once __DIR__ . '/../../example/base/index.php';
     }
 }

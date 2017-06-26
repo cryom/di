@@ -1,0 +1,5 @@
+version: "2"
+services:
+  phpunit:
+    environment:
+      XDEBUG_CONFIG: remote_host=192.168.100.6

@@ -15,13 +15,12 @@ class A
         $this->name = $name;
     }
 
-    public function do()
-    {
-        return 'This is ' . $this->name . "!\nData " . json_encode($this->data);
-    }
-
     public function setData(array $data)
     {
         $this->data = $data;
+    }
+
+    public function getData(){
+        return $this->data;
     }
 }
