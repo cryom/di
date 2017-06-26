@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 03.03.17
- * Time: 2:31
- */
-
 namespace vivace\di;
-
 
 interface Factory
 {

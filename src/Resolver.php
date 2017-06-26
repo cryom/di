@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 26.02.17
- * Time: 22:03
- */
-
 namespace vivace\di;
 
 /**
@@ -57,7 +50,6 @@ class Resolver
     /**
      * @param string|callable $target
      * @return array
-     * @throws InjectorError
      */
     private function meta($target): array
     {

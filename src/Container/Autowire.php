@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 27.02.17
- * Time: 1:24
- */
-
 namespace vivace\di\Container;
-
 
 use Psr\Container\ContainerInterface;
 use vivace\di\Factory;

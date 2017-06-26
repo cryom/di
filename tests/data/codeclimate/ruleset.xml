@@ -10,7 +10,7 @@
     <rule ref="rulesets/naming.xml/BooleanGetMethodName" />
     <rule ref="rulesets/naming.xml/LongVariable">
         <properties>
-            <property name="maximum" value="15" />
+            <property name="maximum" value="25" />
         </properties>
     </rule>
     <rule ref="rulesets/naming.xml/ShortMethodName">

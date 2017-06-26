@@ -1,13 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 28.02.17
- * Time: 0:40
- */
-
 namespace vivace\di\Scope;
-
 
 use vivace\di\Container;
 use vivace\di\ImportFailureError;

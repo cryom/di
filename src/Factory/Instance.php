@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 27.02.17
- * Time: 1:53
- */
-
 namespace vivace\di\Factory;
 
 use vivace\di\BadDefinitionError;

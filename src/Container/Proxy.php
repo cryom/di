@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 24.02.17
- * Time: 0:05
- */
 namespace vivace\di\Container;
 
 use Psr\Container\ContainerInterface;

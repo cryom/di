@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: albertsultanov
- * Date: 04.03.17
- * Time: 14:04
- */
-
 namespace vivace\di\Scope;
 
 use Psr\Container\ContainerInterface;
