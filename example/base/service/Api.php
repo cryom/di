@@ -15,4 +15,10 @@ class Api extends \vivace\di\example\base\module\api\service\Api
         $this->b = $b;
     }
 
+    public function getVersion()
+    {
+        return '1.1';
+    }
+
+
 }

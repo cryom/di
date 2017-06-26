@@ -11,10 +11,12 @@ namespace vivace\di\tests\Scope;
 
 use PHPUnit\Framework\TestCase;
 use vivace\di\Container\Base;
+use vivace\di\example\base\Main;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
 use vivace\di\tests\fixture\Bar;
 use vivace\di\tests\fixture\Baz;
+use vivace\di\tests\fixture\Baz2;
 use vivace\di\tests\fixture\BazInterface;
 use vivace\di\tests\fixture\Foo;
 use vivace\di\tests\fixture\Foo2;
@@ -173,5 +175,28 @@ class PackageTest extends TestCase
         };
         $bar = $pkg->import(Bar::class);
         $this->assertInstanceOf(Foo2::class, $bar->val);
+    }
+
+    public function testAlias()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                $this->use(new class extends Package
+                {
+                    public function __construct()
+                    {
+                        $this->as(Baz::class, BazInterface::class);
+                    }
+                })->insteadOf(Baz::class,Baz2::class);
+            }
+        };
+
+        $this->assertInstanceOf(Baz2::class, $pkg->import(BazInterface::class));
+    }
+
+    public function testTTTT(){
+        require_once __DIR__ . '/../../example/base/index.php';
     }
 }

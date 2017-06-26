@@ -16,14 +16,12 @@ class Proxy extends Base implements Proxiable
 {
     /** @var  ContainerInterface */
     private $container;
-    /** @var callable[] */
-    private $important = [];
     /** @var callable[][] */
     private $bounds = [];
 
-    public function __construct(ContainerInterface $container, array $items = [])
+    public function __construct(ContainerInterface $container)
     {
-        parent::__construct($items);
+        parent::__construct([]);
         $this->container = $container;
     }
 
@@ -37,10 +35,9 @@ class Proxy extends Base implements Proxiable
     /** @inheritdoc */
     public function insteadOf(string $sourceId, string $delegateId): Proxiable
     {
-        $this->important[$sourceId] = function (Scope $scope) use ($delegateId) {
-            $scope = new Scope\Node($scope, $this);
+        parent::set($sourceId, function (Scope $scope) use ($delegateId) {
             return $scope->import($delegateId);
-        };
+        });
         return $this;
     }
 
@@ -52,12 +49,12 @@ class Proxy extends Base implements Proxiable
     {
         $factory = parent::get($id) ?? $this->container->get($id);
 
-        if ($factory === null || (empty($this->important) && !isset($this->bounds[$id]))) {
+        if ($factory === null || !isset($this->bounds[$id])) {
             return $factory;
         }
         $factory = \vivace\di\wrap($factory);
         return function (Scope $scope) use ($factory, $id) {
-            $primaryFactories = array_merge($this->bounds[$id] ?? [], $this->important);
+            $primaryFactories = $this->bounds[$id];
             $scope = new Scope\Node(new Base($primaryFactories), $scope);
 
             return call_user_func($factory, $scope);
@@ -67,20 +64,6 @@ class Proxy extends Base implements Proxiable
     public function has($id): bool
     {
         return parent::has($id) || $this->container->has($id);
-    }
-
-    /**
-     * Revoke redefinition
-     * @param string $targetId
-     * @return mixed
-     */
-    public function important(string $targetId): Proxiable
-    {
-        $this->important[$targetId] = function (Scope $scope) use ($targetId) {
-            $factory = $this->container->get($targetId);
-            return call_user_func(\vivace\di\wrap($factory), $scope);
-        };
-        return $this;
     }
 
     /**

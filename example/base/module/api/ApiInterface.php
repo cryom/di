@@ -1,6 +1,6 @@
 <?php
 
-namespace vivace\di\example\base\module\api\service;
+namespace vivace\di\example\base\module\api;
 
 interface ApiInterface
 {
