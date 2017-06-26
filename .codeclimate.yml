@@ -8,13 +8,14 @@ engines:
     enabled: true
     exclude_fingerprints:
     - b30fc24a0349d52e305d0b8a6eeb8ec8
-    config:
-      rulesets: "unusedcode,codesize,controversial,design,cleancode,phpmd-naming.xml"
   phpmd:
     enabled: true
+    config:
+      rulesets: "unusedcode,codesize,controversial,design,cleancode,tests/data/codeclimate/ruleset.xml"
 ratings:
   paths:
     - "**.php"
 exclude_paths:
   - tests/
   - example/
+  - docker/

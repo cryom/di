@@ -15,7 +15,7 @@ See example for understanding.
 
 ## Code Example
 
-See in ```examples``` directory.
+See in ```example``` directory.
 
 ## Motivation
 
