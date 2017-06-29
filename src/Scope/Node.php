@@ -16,28 +16,41 @@ class Node implements Scope
         $this->containers = $containers;
     }
 
+    private function isStacked($id, $container)
+    {
+        return isset($this->stack[$id]) && in_array($container, $this->stack[$id], true);
+    }
 
+    private function stackBegin($id, $container)
+    {
+        $this->stack[$id][] = $container;
+    }
+
+    private function stackEnd($id)
+    {
+        array_pop($this->stack[$id]);
+        if (empty($this->stack[$id])) {
+            unset($this->stack[$id]);
+        }
+    }
     /** @inheritdoc */
     public function get($id): ?callable
     {
         foreach ($this->containers as $container) {
-            if (isset($this->stack[$id]) && in_array($container, $this->stack[$id], true)) {
+            if ($this->isStacked($id, $container) || !$container->has($id)) {
                 continue;
             }
-            if (!$container->has($id)) {
-                continue;
-            }
-            if (null === ($factory = $container->get($id))) {
+            $factory = $container->get($id);
+            if ($factory === null) {
                 break;
             }
             return function (Scope $scope) use ($id, $factory, $container) {
-                $this->stack[$id][] = $container;
-                $factory = \vivace\di\wrap($factory);
-                $result = call_user_func($factory, $scope);
-                array_pop($this->stack[$id]);
-                if (empty($this->stack[$id])) {
-                    unset($this->stack[$id]);
-                }
+                $this->stackBegin($id, $container);
+                $result = call_user_func(
+                    \vivace\di\wrap($factory),
+                    $scope
+                );
+                $this->stackEnd($id);
                 return $result;
             };
         }
