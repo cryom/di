@@ -78,13 +78,14 @@ class Proxy extends Base implements Proxiable
         foreach ($map as $id => $delegate) {
             if (is_callable($delegate)) {
                 $factories[$id] = $delegate;
+                continue;
             } elseif (is_string($delegate)) {
                 $factories[$id] = function (Scope $scope) use ($delegate) {
                     return $scope->import($delegate);
                 };
-            } else {
-                throw new InvalidArgumentError("Invalid value type. Value should be a callable or string");
+                continue;
             }
+            throw new InvalidArgumentError("Invalid value type. Value should be a callable or string");
         }
         $this->bounds[$targetId] = $factories;
         return $this;

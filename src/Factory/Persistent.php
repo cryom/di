@@ -17,5 +17,4 @@ class Persistent extends Instance
     {
         return $this->instance ?? $this->instance = parent::produce($scope);
     }
-
 }
