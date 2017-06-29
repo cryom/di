@@ -6,7 +6,6 @@ use vivace\di\Factory;
 use vivace\di\Resolver;
 use vivace\di\Scope;
 
-
 /**
  * Factory for instantiate object with automated resolving of dependencies
  * For resolving used instance of vivace\di\Resolver, which should be exported in your main scope

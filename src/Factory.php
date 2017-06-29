@@ -30,5 +30,4 @@ interface Factory
      * @throws ImportFailureError Throw away if no candidate is found to resolve the dependency
      */
     public function __invoke(Scope $scope);
-
 }

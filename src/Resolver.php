@@ -86,7 +86,7 @@ class Resolver
                 try {
                     $argumentsValues[] = call_user_func($resolver, $item, $parameters, $this->scope);
                     continue(2);
-                } catch (NotResolvedError $_) {
+                } catch (NotResolvedError $e) {
                     continue;
                 }
             }

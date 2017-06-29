@@ -61,8 +61,7 @@ class Autowire implements ContainerInterface
                         Resolver::class => function (Scope $scope) {
                             return new Resolver($scope);
                         },
-                    ])
-                    );
+                    ]));
                     return parent::produce($scope);
                 }
             }
