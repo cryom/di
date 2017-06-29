@@ -9,6 +9,7 @@ class Main extends di\Scope\Package
 {
     public function __construct()
     {
+        parent::__construct();
         $this->class(service\B::class, ['name' => 'CLASS B']);
         $this->class(service\A::class, ['name' => 'CLASS A'])
             ->setUp(function (service\A $a) {
