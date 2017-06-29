@@ -10,7 +10,9 @@ namespace vivace\di\tests\Scope;
 
 
 use PHPUnit\Framework\TestCase;
+use vivace\di\BadDefinitionError;
 use vivace\di\Container\Base;
+use vivace\di\Factory\Instance;
 use vivace\di\Scope;
 use vivace\di\Scope\Package;
 use vivace\di\tests\fixture\Bar;
@@ -33,6 +35,7 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->export('a', \vivace\di\wrap('a'));
                 $this->export('b', \vivace\di\wrap('b'));
                 $this->use(new Base([
@@ -54,6 +57,7 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->export('a', \vivace\di\wrap('a'));
                 $this->export('b', \vivace\di\wrap('b'));
                 $this->use(new Base([
@@ -74,6 +78,7 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->export('a', \vivace\di\wrap('a'));
                 $this->export('b', \vivace\di\wrap('b'));
                 $this->use(new Base([
@@ -97,6 +102,7 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->class(Foo::class, ['val' => 1]);
             }
         };
@@ -111,6 +117,7 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->interface(BazInterface::class, Baz::class);
             }
         };
@@ -125,7 +132,8 @@ class PackageTest extends TestCase
         {
         };
 
-        $this->assertInstanceOf(Baz::class, $pkg->import(Baz::class));
+        $actual = $pkg->import(Baz::class);
+        $this->assertInstanceOf(Baz::class, $actual);
     }
 
     public function testGetFactoryForNotDefinedObject()
@@ -142,6 +150,7 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->as(Baz::class, BazInterface::class);
             }
         };
@@ -155,6 +164,7 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->insteadOf(Foo::class, Foo2::class);
             }
         };
@@ -167,6 +177,7 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->insteadFor(Bar::class, [
                     Foo::class => Foo2::class
                 ]);
@@ -182,10 +193,12 @@ class PackageTest extends TestCase
         {
             public function __construct()
             {
+                parent::__construct();
                 $this->use(new class extends Package
                 {
                     public function __construct()
                     {
+                        parent::__construct();
                         $this->as(Baz::class, BazInterface::class);
                     }
                 })->insteadOf(Baz::class,Baz2::class);
@@ -193,5 +206,34 @@ class PackageTest extends TestCase
         };
 
         $this->assertInstanceOf(Baz2::class, $pkg->import(BazInterface::class));
+    }
+
+    public function testAuto()
+    {
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                parent::__construct();
+                $this->auto(Foo::class)->setArguments(['val' => 123123]);
+            }
+        };
+
+        $foo = $pkg->import(Foo::class);
+        $this->assertEquals(123123, $foo->val);
+    }
+
+    public function testRedefineException()
+    {
+        $this->expectException(BadDefinitionError::class);
+        $pkg = new class extends Package
+        {
+            public function __construct()
+            {
+                parent::__construct();
+                $this->export(Foo::class, new Instance(Foo::class));
+                $this->export(Foo::class, new Instance(Foo::class));
+            }
+        };
     }
 }

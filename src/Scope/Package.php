@@ -16,60 +16,42 @@ use vivace\di\Scope;
  * Class Package
  * @package vivace\di\Scope
  */
-abstract class Package implements Scope, Proxiable
+abstract class Package extends Proxy implements Scope, Proxiable
 {
-    /** @var  Branch */
-    private $branch;
-    /** @var Proxy */
-    private $proxy;
-    /** @var Node */
+    /**
+     * @var Node for support 'use' method
+     * @see Package::use()
+     */
     private $node;
-    /** @var  Autowire */
+    /**
+     * @var  Autowire For support auto-wiring
+     */
     private $autowire;
 
-    /**
-     * @return Branch
-     */
-    private function getBranch()
-    {
-        return $this->branch ?? $this->branch = new Branch([
-                'vivace\di\Resolver' => \Closure::fromCallable([$this, 'createResolver'])
-            ]);
-    }
-
-    protected function createResolver(Scope $scope): Resolver
-    {
-        return new Resolver($scope);
-    }
+    /** @var  Node Node with Autowire container */
+    private $autowiredNode;
 
     /**
-     * @return Proxy
+     * Package constructor.
      */
-    private function getProxy()
+    public function __construct()
     {
-        return $this->proxy ?? $this->proxy = new Proxy($this->getNode());
+        $container = new Branch([
+            'vivace\di\Resolver' => function (Scope $scope) {
+                return new Resolver($scope);
+            },
+        ]);
+        $this->autowire = new Autowire();
+        $this->node = new Node($container);
+        parent::__construct($this->node);
     }
 
     /**
-     * @return Autowire
+     * @return \Psr\Container\ContainerInterface
      */
-    private function getAutowire()
+    protected function getContainer(): ContainerInterface
     {
-        return $this->autowire ?? $this->autowire = new Autowire();
-    }
-
-    /**
-     * Node used for extending other containers
-     * @return Node
-     * @see use()
-     */
-    private function getNode()
-    {
-        if (!$this->node) {
-            $this->node = new Node($this->getBranch());
-            $this->node->append($this->getAutowire(), false);
-        }
-        return $this->node;
+        return $this->autowiredNode ?? $this->autowiredNode = new Node(parent::getContainer(), $this->autowire);
     }
 
     /**
@@ -79,10 +61,10 @@ abstract class Package implements Scope, Proxiable
      */
     final protected function export(string $id, callable $factory)
     {
-        if ($this->getBranch()->has($id)) {
+        if (isset($this->items[$id])) {
             throw new BadDefinitionError("Factory $id has been defined");
         }
-        $this->getBranch()->set($id, $factory);
+        parent::set($id, $factory);
     }
 
     /**
@@ -94,7 +76,7 @@ abstract class Package implements Scope, Proxiable
         if (!$container instanceof Proxiable) {
             $container = new Proxy($container);
         }
-        $this->getNode()->append($container);
+        $this->node->append($container);
         return $container;
     }
 
@@ -108,42 +90,17 @@ abstract class Package implements Scope, Proxiable
         throw new ImportFailureError("Undefined $id");
     }
 
-    /** @inheritdoc */
-    public function as(string $sourceId, string $alias): Proxiable
-    {
-        return $this->getProxy()->as($sourceId, $alias);
-    }
-
-    /** @inheritdoc */
-    public function insteadOf(string $sourceId, string $delegateId): Proxiable
-    {
-        return $this->getProxy()->insteadOf($sourceId, $delegateId);
-    }
-
-    /** @inheritdoc */
-    public function insteadFor(string $targetId, array $map): Proxiable
-    {
-        return $this->getProxy()->insteadFor($targetId, $map);
-    }
-
     /**
-     * @param string $id
-     * @return callable
+     * Settings for auto-wiring factories
+     * @param string $className Name of the class you want to configure
+     * @return \vivace\di\Factory
+     *
+     * $this->auto('PDO')->setArguments(['dsn' => 'mysql://...'])
      */
-    public function get($id)
+    protected function auto(string $className): Factory
     {
-        return $this->getProxy()->get($id);
+        return $this->autowire->get($className);
     }
-
-    /**
-     * @param string $id
-     * @return bool
-     */
-    public function has($id)
-    {
-        return $this->getProxy()->has($id);
-    }
-
     /**
      * @param string $className
      * @param array $arguments

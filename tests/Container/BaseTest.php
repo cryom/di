@@ -39,4 +39,20 @@ class BaseTest extends TestCase
         $this->assertEquals($dF, $c->get('d'));
         $this->assertEquals($fF, $c->get('f'));
     }
+
+    public function testDelete()
+    {
+        $c = new Base([
+            'd' => $dF = function () {
+                return 'd';
+            },
+            'f' => $fF = function () {
+                return 'f';
+            },
+        ]);
+
+        $c->delete('d');
+        $this->assertNull($c->get('d'));
+        $this->assertEquals($fF, $c->get('f'));
+    }
 }

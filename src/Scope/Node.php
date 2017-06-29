@@ -8,26 +8,19 @@ use vivace\di\Scope;
 class Node implements Scope
 {
     private $stack = [];
-    /** @var  ContainerInterface[] */
-    private $secondary = [];
     /** @var ContainerInterface[] */
-    private $primary = [];
+    private $containers = [];
 
     public function __construct(ContainerInterface ...$containers)
     {
-        $this->primary = $containers;
+        $this->containers = $containers;
     }
 
 
     /** @inheritdoc */
     public function get($id): ?callable
     {
-        if ($this->secondary) {
-            $containers = array_merge($this->primary, $this->secondary);
-        } else {
-            $containers = $this->primary;
-        }
-        foreach ($containers as $container) {
+        foreach ($this->containers as $container) {
             if (isset($this->stack[$id]) && in_array($container, $this->stack[$id], true)) {
                 continue;
             }
@@ -54,12 +47,7 @@ class Node implements Scope
     /** @inheritdoc */
     public function has($id): bool
     {
-        if ($this->secondary) {
-            $containers = array_merge($this->primary, $this->secondary);
-        } else {
-            $containers = $this->primary;
-        }
-        foreach ($containers as $container) {
+        foreach ($this->containers as $container) {
             if ($container->has($id)) {
                 return true;
             }
@@ -70,28 +58,21 @@ class Node implements Scope
     /** @inheritdoc */
     public function import(string $id)
     {
-        if (null === ($factory = $this->get($id))) {
+        $factory = $this->get($id);
+        if ($factory === null) {
             throw new ImportFailureError("Undefined $id");
         }
 
         return call_user_func($factory, $this);
     }
 
-    public function append(ContainerInterface $scope, bool $primary = true)
+    public function append(ContainerInterface $scope)
     {
-        if ($primary) {
-            $this->primary[] = $scope;
-        } else {
-            $this->secondary[] = $scope;
-        }
+        $this->containers[] = $scope;
     }
 
-    public function prepend(ContainerInterface $scope, bool $primary = true)
+    public function prepend(ContainerInterface $scope)
     {
-        if ($primary) {
-            array_unshift($this->primary, $scope);
-        } else {
-            array_unshift($this->secondary, $scope);
-        }
+        array_unshift($this->containers, $scope);
     }
 }

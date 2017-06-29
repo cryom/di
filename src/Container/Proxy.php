@@ -19,6 +19,11 @@ class Proxy extends Base implements Proxiable
         $this->container = $container;
     }
 
+    protected function getContainer(): ContainerInterface
+    {
+        return $this->container;
+    }
+
     /** @inheritdoc */
     public function as(string $sourceId, string $alias): Proxiable
     {
@@ -41,7 +46,7 @@ class Proxy extends Base implements Proxiable
      */
     public function get($id): ?callable
     {
-        $factory = parent::get($id) ?? $this->container->get($id);
+        $factory = parent::get($id) ?? $this->getContainer()->get($id);
 
         if ($factory === null || !isset($this->bounds[$id])) {
             return $factory;
@@ -57,7 +62,7 @@ class Proxy extends Base implements Proxiable
 
     public function has($id): bool
     {
-        return parent::has($id) || $this->container->has($id);
+        return parent::has($id) || $this->getContainer()->has($id);
     }
 
     /**

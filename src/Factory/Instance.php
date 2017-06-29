@@ -3,7 +3,6 @@ namespace vivace\di\Factory;
 
 use vivace\di\BadDefinitionError;
 use vivace\di\Factory;
-use vivace\di\ImportFailureError;
 use vivace\di\Resolver;
 use vivace\di\Scope;
 
@@ -15,59 +14,34 @@ use vivace\di\Scope;
  */
 class Instance implements Factory
 {
-    /** @var bool */
-    private $service = false;
-    /** @var */
-    private $instance;
     /** @var array */
-    private $arguments = [];
+    protected $arguments = [];
     /** @var callable */
-    private $setUp;
+    protected $setUp;
     /** @var string */
-    private $className;
+    protected $className;
 
     /**
      * Factory constructor.
      * @param string $className Target class name
      * @param array $arguments Parameters for resolver
-     * @param bool $asService
      * @throws BadDefinitionError
      * @see Instance::setArguments
      */
-    public function __construct(string $className, array $arguments = [], $asService = true)
+    public function __construct(string $className, array $arguments = [])
     {
         $this->className = $className;
         $this->setArguments($arguments);
-        $this->asService($asService);
     }
 
-    /**
-     * Set dependencies arguments for instantiate of target class
-     * @param array $arguments Associative array, where key can be name, type or position of argument.
-     * @return Factory|$this Instance of this object
-     */
+    /** @inheritdoc */
     public function setArguments(array $arguments): Factory
     {
         $this->arguments = $arguments;
         return $this;
     }
 
-    /**
-     * Make as a service. Instance will behave as a singleton pattern
-     * @param bool $value enable or disable
-     * @return Factory|$this Instance of target class
-     */
-    public function asService($value = true): Factory
-    {
-        $this->service = $value;
-        return $this;
-    }
-
-    /**
-     * Set function, which call will occur after instantiate
-     * @param callable $function Takes two arguments, where first is a instance of target object, second is a instance of vivace\di\Scope
-     * @return Factory|$this
-     */
+    /** @inheritdoc */
     public function setUp(callable $function): Factory
     {
         $this->setUp = $function;
@@ -80,11 +54,8 @@ class Instance implements Factory
      * @return object Instance object of target class
      * @throws BadDefinitionError
      */
-    public function produce(Scope $scope)
+    protected function produce(Scope $scope)
     {
-        if ($this->service && $this->instance) {
-            return $this->instance;
-        }
         if (!class_exists($this->getClassName())) {
             throw new BadDefinitionError("Class {$this->getClassName()} not found");
         }
@@ -95,9 +66,6 @@ class Instance implements Factory
         if (!empty($this->setUp)) {
             call_user_func($this->setUp, $object, $scope);
         }
-        if ($this->service) {
-            $this->instance = $object;
-        }
         return $object;
     }
 
@@ -105,12 +73,8 @@ class Instance implements Factory
     {
         return $scope->import(Resolver::class);
     }
-    /**
-     * @param Scope $scope
-     * @return mixed
-     * @throws ImportFailureError
-     * @see Instance::produce
-     */
+
+    /** @inheritdoc */
     final public function __invoke(Scope $scope)
     {
         return $this->produce($scope);

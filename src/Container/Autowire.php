@@ -40,12 +40,6 @@ class Autowire implements ContainerInterface
                 }
             }
 
-            public function asService($value = true): Factory
-            {
-                $this->bind();
-                return parent::asService($value);
-            }
-
             public function setArguments(array $arguments): Factory
             {
                 $this->bind();

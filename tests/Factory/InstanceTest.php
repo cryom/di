@@ -12,7 +12,6 @@ namespace vivace\di\tests\Factory;
 use PHPUnit\Framework\TestCase;
 use vivace\di\BadDefinitionError;
 use vivace\di\Factory\Instance;
-use vivace\di\ImportFailureError;
 use vivace\di\Resolver;
 use vivace\di\Scope;
 use vivace\di\Scope\Branch;
@@ -30,7 +29,7 @@ class InstanceTest extends TestCase
     {
         $this->expectException(BadDefinitionError::class);
         $factory = new Instance('123');
-        $factory->produce(new Scope\Node());
+        $factory(new Scope\Node());
     }
 
     protected function getResolverFactory()
@@ -43,18 +42,9 @@ class InstanceTest extends TestCase
     {
         $scope = new Branch([Resolver::class => $this->getResolverFactory()]);
         $factory = new Instance(Foo::class);
-        $foo = $factory->setArguments(['val' => 'value'])->produce($scope);
+        $factory->setArguments(['val' => 'value']);
+        $foo = $factory($scope);
         $this->assertEquals('value', $foo->val);
-    }
-
-
-    public function testFactoryService()
-    {
-        $scope = new Branch([Resolver::class => $this->getResolverFactory()]);
-        $factory = new Instance(Foo::class);
-        $this->assertSame($factory->produce($scope), $factory->produce($scope));
-        $factory->asService(false);
-        $this->assertNotSame($factory->produce($scope), $factory->produce($scope));
     }
 
 
@@ -66,7 +56,7 @@ class InstanceTest extends TestCase
         $factory->setUp(function (Foo $foo) {
             $foo->val = 'value';
         });
-        $foo = $factory->produce($scope);
+        $foo = $factory($scope);
         $this->assertEquals('value', $foo->val);
     }
 
@@ -74,6 +64,6 @@ class InstanceTest extends TestCase
     {
         $this->expectException(\Throwable::class);
         $factory = new Instance(Bar::class);
-        $factory->produce(new Branch([Resolver::class => $this->getResolverFactory()]));
+        $factory(new Branch([Resolver::class => $this->getResolverFactory()]));
     }
 }

@@ -39,6 +39,23 @@ class NodeTest extends TestCase
         $node = new Node(new Branch(['a' => 'a']), new Branch(['b' => 'b']));
         $this->assertNull($node->get('undefined'));
     }
+
+    public function testAppend()
+    {
+        $node = new Node();
+        $node->append(new Branch(['a' => 1]));
+        $node->append(new Branch(['a' => 2]));
+        $this->assertEquals(1, call_user_func($node->get('a'), $node));
+    }
+
+    public function testPrepend()
+    {
+        $node = new Node();
+        $node->prepend(new Branch(['a' => 1]));
+        $node->prepend(new Branch(['a' => 2]));
+        $this->assertEquals(2, call_user_func($node->get('a'), $node));
+    }
+
     public function testImport()
     {
         $node = new Node(
