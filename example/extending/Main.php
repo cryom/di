@@ -15,6 +15,7 @@ class Main extends Package
 {
     public function __construct()
     {
+        parent::__construct();
         $this->use(new module\blog\Main())
             ->as(ViewInterface::class, 'blogView');
 
