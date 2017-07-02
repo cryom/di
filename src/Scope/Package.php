@@ -64,7 +64,7 @@ abstract class Package extends Proxy implements Scope, Proxiable
         if (isset($this->items[$id])) {
             throw new BadDefinitionError("Factory $id has been defined");
         }
-        parent::set($id, $factory);
+        $this->items[$id] = $factory;
     }
 
     /**

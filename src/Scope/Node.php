@@ -9,7 +9,7 @@ class Node implements Scope
 {
     private $stack = [];
     /** @var ContainerInterface[] */
-    private $containers = [];
+    protected $containers = [];
 
     public function __construct(ContainerInterface ...$containers)
     {
@@ -79,12 +79,12 @@ class Node implements Scope
         return call_user_func($factory, $this);
     }
 
-    public function append(ContainerInterface $scope)
+    public function append(ContainerInterface $scope): void
     {
         $this->containers[] = $scope;
     }
 
-    public function prepend(ContainerInterface $scope)
+    public function prepend(ContainerInterface $scope): void
     {
         array_unshift($this->containers, $scope);
     }

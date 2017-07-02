@@ -59,7 +59,7 @@ class Instance implements Factory
             throw new BadDefinitionError("Class {$this->getClassName()} not found");
         }
         /** @var Resolver $resolver */
-        $resolver = $this->getResolver($scope);
+        $resolver = $this->importResolver($scope);
         $arguments = $resolver->resolve($this->className, $this->arguments);
         $object = new $this->className(...$arguments);
         if (!empty($this->setUp)) {
@@ -68,7 +68,7 @@ class Instance implements Factory
         return $object;
     }
 
-    protected function getResolver(Scope $scope): Resolver
+    protected function importResolver(Scope $scope): Resolver
     {
         return $scope->import(Resolver::class);
     }

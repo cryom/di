@@ -5,6 +5,7 @@ use Psr\Container\ContainerInterface;
 use vivace\di\InvalidArgumentError;
 use vivace\di\Proxiable;
 use vivace\di\Scope;
+use function vivace\di\wrap;
 
 class Proxy extends Base implements Proxiable
 {
@@ -34,9 +35,9 @@ class Proxy extends Base implements Proxiable
     /** @inheritdoc */
     public function insteadOf(string $sourceId, string $delegateId): Proxiable
     {
-        parent::set($sourceId, function (Scope $scope) use ($delegateId) {
+        $this->items[$sourceId] = function (Scope $scope) use ($delegateId) {
             return $scope->import($delegateId);
-        });
+        };
         return $this;
     }
 

@@ -102,7 +102,8 @@ class ProxyTest extends TestCase
         ]);
         $node = new Scope\Node($scope, $proxy);
         $this->assertEquals('ab', $node->import('c'));
-        $this->assertEquals('a1b2', $node->import('d'));
+        $import = $node->import('d');
+        $this->assertEquals('a1b2', $import);
         $this->assertEquals('ve1a1b2', $node->import('e'));
 
         $this->expectException(InvalidArgumentError::class);

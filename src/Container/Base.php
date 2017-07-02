@@ -31,11 +31,6 @@ class Base implements ContainerInterface
         return isset($this->items[$id]);
     }
 
-    public function set(string $id, $value)
-    {
-        $this->items[$id] = $value;
-    }
-
     public function delete(string $id)
     {
         unset($this->items[$id]);
