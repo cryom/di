@@ -5,14 +5,11 @@ use Psr\Container\ContainerInterface;
 use vivace\di\InvalidArgumentError;
 use vivace\di\Proxiable;
 use vivace\di\Scope;
-use function vivace\di\wrap;
 
 class Proxy extends Base implements Proxiable
 {
     /** @var  ContainerInterface */
     private $container;
-    /** @var callable[][] */
-    private $bounds = [];
 
     public function __construct(ContainerInterface $container)
     {
@@ -47,18 +44,18 @@ class Proxy extends Base implements Proxiable
      */
     public function get($id): ?callable
     {
-        $factory = parent::get($id) ?? $this->getContainer()->get($id);
+        return parent::get($id) ?? $this->getContainer()->get($id);
 
-        if ($factory === null || !isset($this->bounds[$id])) {
-            return $factory;
-        }
-        $factory = \vivace\di\wrap($factory);
-        return function (Scope $scope) use ($factory, $id) {
-            $primaryFactories = $this->bounds[$id];
-            $scope = new Scope\Node(new Base($primaryFactories), $scope);
-
-            return call_user_func($factory, $scope);
-        };
+//        if ($factory === null || !isset($this->bounds[$id])) {
+//            return $factory;
+//        }
+//        $factory = \vivace\di\wrap($factory);
+//        return function (Scope $scope) use ($factory, $id) {
+//            $primaryFactories = $this->bounds[$id];
+//            $scope = new Scope\Node(new Base($primaryFactories), $scope);
+//
+//            return call_user_func($factory, $scope);
+//        };
     }
 
     public function has($id): bool
@@ -88,7 +85,14 @@ class Proxy extends Base implements Proxiable
             }
             throw new InvalidArgumentError("Invalid value type. Value should be a callable or string");
         }
-        $this->bounds[$targetId] = $factories;
+        $this->items[$targetId] = function (Scope $scope) use ($targetId, $factories) {
+            static $factory;
+            $factory = $factory ?? $this->getContainer()->get($targetId);
+
+            $scope = new  Scope\Node(new Base($factories), $scope);
+
+            return call_user_func($factory, $scope);
+        };
         return $this;
     }
 }
